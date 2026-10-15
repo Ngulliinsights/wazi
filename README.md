@@ -1,60 +1,148 @@
-# Bid Box (backend, Day 1 build)
+# Wazi
 
-Open-contracting agent backend: an MCP server that prepares **sourced tender-readiness briefs**.
+Open-contracting agent backend: an MCP server that prepares **sourced tender-readiness briefs** for Kenyan public procurement.
 It never awards a tender and cannot approve its own filings.
 
-**Status:** backend + agent core built (own MCP server, borrowed Fetch MCP server, store, audit log, approval gate, LangGraph agent, 375 tests, 129-mutant check, eval harness, API + one-page UI, submission preflight).
-**Not built yet:** real Kenya data load (the real feed may omit start dates: untested), EVALS.md/ARCHITECTURE.md/DESCRIPTION.md (written from real-model runs).
-**Not yet tested:** the live open-weights path (`OllamaLLM`). All agent tests use a deterministic `StubLLM` (not a model; results are flagged `llm: stub`). Run against a real local model before trusting any behaviour claim.
-**Data:** currently a SYNTHETIC sample (`data/sample_ocds.json`). Swap in a real OCDS export with `python -m bidbox.cli load <file>`.
-**Data half:** built on tender, award and price history. Bid documents are not published by the portals, so no bid evaluation.
+**Problem Statement:** Public procurement in Kenya is supposed to be open, but procurement managers signing off tenders and small suppliers deciding whether to bid rarely get a clear, checkable picture. Wazi prepares one: a tender-readiness brief where every statement points to the record it came from, and a named human decides.
 
-## Run
-**One command:** `python run.py` (Windows: `py run.py`). It creates `.venv`, installs, loads the synthetic sample, starts the UI and opens it. It uses a local Ollama model if one is running; otherwise the deterministic STUB, clearly labelled (demo only, not a model). `python run.py --check` bootstraps and does one run, then exits 0 or 1.
+**Target Users:**
+- **Primary:** Procurement managers (buyer side) who sign off tenders — need a health check of their own tender
+- **Secondary:** Small suppliers' supply chain managers — need to verify tender details before bidding
 
-Manual route (Windows: `.venv\Scripts\activate`):
-    python -m venv .venv && . .venv/bin/activate
-    pip install -e ".[dev]"
-    python -m bidbox.cli load        # load sample data
-    python -m bidbox.cli audit       # field coverage and outlier audit
-    python -m pytest                 # 13 tests
-    python -m bidbox.server          # MCP server over stdio
-    python scripts/mutate.py [lo:hi] [--jobs N] [--skip-baseline]   # break trust-critical code on purpose in THROWAWAY COPIES; every mutant must be caught
-    python -m bidbox.api              # one-page UI at http://127.0.0.1:8000  (BIDBOX_LLM=stub for a no-model demo)
-    python scripts/preflight.py      # is the repo submittable right now? lists what is outstanding
-    BIDBOX_HOME=/tmp/ev python -m bidbox.evals --llm stub --runs 1            # harness check (stub = plumbing only)
-    BIDBOX_HOME=/tmp/ev python -m bidbox.evals --llm ollama --model qwen3:8b --runs 5   # the real eval: pipeline vs loop
-    python -m bidbox.agent ocds-synth-0001 --llm stub --as-of 2026-01-01        # no model needed
-    BIDBOX_MODEL=qwen3:8b python -m bidbox.agent ocds-synth-0001 --as-of 2026-01-01   # local Ollama
+**Status:** Backend + agent core built (own MCP server, borrowed Fetch MCP server, store, audit log, approval gate, LangGraph agent, 375 tests, 104-mutant check, eval harness, API + one-page UI, submission preflight).
+**Not built yet:** Real Kenya data load (the real feed may omit start dates: untested), EVALS.md/ARCHITECTURE.md/DESCRIPTION.md (written from real-model runs).
+**Not yet tested:** The live open-weights path (`OllamaLLM`) against all eval cases. All agent tests use a deterministic `StubLLM` (not a model; results are flagged `llm: stub`). Run against a real local model before trusting any behaviour claim.
+**Data:** Currently a SYNTHETIC sample (`data/sample_ocds.json`). Swap in a real OCDS export with `python -m bidbox.cli load <file>`.
+**Data half:** Built on tender, award and price history. Bid documents are not published by the portals, so no bid evaluation.
 
-## Tools
+## Setup / Installation
+**One command (recommended):**
+```bash
+python run.py          # Windows: py run.py
+```
+Creates `.venv`, installs dependencies, loads synthetic sample data, starts UI at `http://127.0.0.1:8000`, opens browser. Uses local Ollama model if running; otherwise deterministic STUB (clearly labelled, demo only).
+
+**Manual route:**
+```bash
+python -m venv .venv
+. .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
+python -m bidbox.cli load     # load sample data
+python -m bidbox.cli audit    # field coverage and outlier audit
+python -m pytest              # 375 tests
+python -m bidbox.server       # MCP server over stdio
+python -m bidbox.api          # one-page UI at http://127.0.0.1:8000
+```
+
+**With local Ollama model:**
+```bash
+ollama pull qwen3:4b          # fits in 4 GB VRAM
+python -m bidbox.agent ocds-synth-0001 --llm ollama --model qwen3:4b --as-of 2026-01-01
+```
+
+**With free-tier OpenAI-compatible endpoint:**
+```bash
+BIDBOX_LLM_API=openai \
+BIDBOX_LLM_URL=https://api.example.com/v1 \
+BIDBOX_API_KEY=$KEY \
+BIDBOX_MODEL=model-name \
+python -m bidbox.agent ocds-synth-0001 --as-of 2026-01-01
+```
+
+## Usage Instructions
+| Task | Command |
+|---|---|
+| Load OCDS data | `python -m bidbox.cli load [file]` |
+| Audit data quality | `python -m bidbox.cli audit` |
+| Run agent (stub) | `python -m bidbox.agent <ocid> --llm stub --as-of 2026-01-01` |
+| Run agent (Ollama) | `python -m bidbox.agent <ocid> --llm ollama --model qwen3:4b --as-of 2026-01-01` |
+| List pending briefs | `python -m bidbox.cli pending` |
+| Show brief + fingerprint | `python -m bidbox.cli show <filing_id>` |
+| Approve brief | `python -m bidbox.cli approve <filing_id> --approver "Name" --sha256 <fingerprint>` |
+| Reject brief | `python -m bidbox.cli reject <filing_id> --approver "Name" --reason "..." --sha256 <fingerprint>` |
+| Verify filing | `python -m bidbox.cli verify <filing_id>` |
+| Run evals (stub) | `BIDBOX_HOME=/tmp/ev python -m bidbox.evals --llm stub --runs 1` |
+| Run evals (Ollama) | `BIDBOX_HOME=/tmp/ev python -m bidbox.evals --llm ollama --model qwen3:4b --runs 5` |
+| Benchmark model | `python -m bidbox.bench --model qwen3:4b --runs 2` |
+| Mutation testing | `python scripts/mutate.py` |
+| Preflight check | `python scripts/preflight.py` |
+| Practitioner review | `python -m bidbox.review --help` |
+
+## Architecture
+See [ARCHITECTURE.md](ARCHITECTURE.md) for a one-page architecture diagram and design decisions.
+
+## Technology Stack
+- **Language:** Python 3.11+
+- **Orchestration:** LangGraph (open-source)
+- **MCP:** Official `mcp` SDK + `mcp-server-fetch` (borrowed)
+- **Model:** Open-weights via Ollama (native API) or any OpenAI-compatible endpoint
+- **API/UI:** FastAPI + Uvicorn + static HTML/JS
+- **Storage:** SQLite (normalized OCDS)
+- **Testing:** pytest, mutation testing (custom), eval harness
+- **Packaging:** pip, setuptools
+
+## Agent Architecture
+The agent is a LangGraph state machine with explicit nodes:
+1. **Intake** — Scope guard (refuses award/legal requests)
+2. **Plan** — Model chooses optional checks (history, benchmark)
+3. **Notice** — `get_tender_notice` tool
+4. **History** — `buyer_award_history` (buyer-id fallback, broadens if thin)
+5. **Benchmark** — `price_benchmark` (skips if category/value missing)
+6. **Window** — `window_baseline` (peer comparison of bidding window)
+7. **Documents** — Borrowed `fetch` server for tender document links
+8. **Investigate** (loop mode only) — Model chooses allowed check from allowlist when data raises a signal
+9. **Evidence** — Built by code from tool outputs
+10. **Synthesize** — Model writes findings citing evidence
+11. **Verify** — Code checks: every finding cites evidence, every number appears in evidence, no verdict language (max 2 attempts, then template fallback)
+12. **File Brief** — `file_brief` tool queues for human approval (replay-checked)
+13. **Stop** — Named human must approve exact brief fingerprint
+
+The model never calls tools, never sees raw tool output as truth, cannot approve, and cannot raise a signal the data did not raise.
+
+## MCP Implementation
+### Built Server (`bidbox.server`)
+5 tools over normalized SQLite store:
 | Tool | Type | Purpose |
 |---|---|---|
-| get_tender_notice | read | notice fields, deadline status (replayable via as_of), unknowns listed |
-| buyer_award_history | read | past awards, supplier concentration as a signal |
-| price_benchmark | read | median/MAD benchmark, extreme outliers surfaced not hidden |
-| file_brief | acts | queues a sourced brief; unsourced findings dropped |
+| `get_tender_notice` | read | Notice fields, deadline status (replayable via `as_of`), unknowns listed |
+| `buyer_award_history` | read | Past awards, supplier concentration as a signal |
+| `price_benchmark` | read | Median/MAD benchmark, extreme outliers surfaced not hidden |
+| `peer_baseline` | read | Tests concentration signal against comparable buyers |
+| `window_baseline` | read | Bidding window vs comparable tenders (same method/category) |
+| `file_brief` | act | Queues a sourced brief for human approval |
 
-Human side: `python -m bidbox.cli pending | approve <id> --approver "Name" | reject <id> --approver "Name"`.
-Every tool call is logged to `var/audit.jsonl` (inputs, outputs, timestamp, run id).
+### Borrowed Server (`mcp-server-fetch`)
+Official Fetch MCP server — reads tender document links. Handles robots.txt, redirects, content types, truncation. Called in `raw` mode (no Node/npm needed). Document text is untrusted data: instruction-like text excluded and reported, dead links recovered from and reported.
 
-## Agent (LangGraph)
-intake (scope guard) → plan (model; falls back to default if it fails) → notice → history (buyer-id fallback, broaden if thin) → benchmark (skips if category/value missing) → evidence (built by code) → synthesize (model) → verify (every finding must cite evidence; every number must appear in it; max 2 attempts) → file_brief → **stop for a named human**.
-The model never sees raw tool JSON as truth, cannot raise a "signal" the data did not raise, and cannot approve. Tools are reached only through the MCP server.
+Both servers are mandatory for prize eligibility; neither may be stubbed out. If fetch server cannot start, run records `fetch_server_failed` and says so in brief; never silently skips.
 
-## MCP servers: built versus borrowed
-- **Built (`bidbox.server`):** 4 tools over a normalised local store; `file_brief` acts (queues a sourced brief for human approval).
-- **Borrowed (official `mcp-server-fetch`):** the agent reads tender document links through it. It beats writing it ourselves because robots.txt handling, redirects, content types and truncation are done and maintained by others. We call it in `raw` mode, so no Node/npm is needed. Document text is treated as untrusted data: instruction-like text is excluded and reported, dead links are recovered from and reported.
-- Both are mandatory for prize eligibility; neither may be stubbed out. If the fetch server cannot start, the run records `fetch_server_failed` and says so in the brief; it never silently skips.
-- Fetch calls are logged by the agent (`tool: fetch`, `server: fetch (borrowed)`) in `var/audit.jsonl`.
-
-## Harness design: fixed pipeline vs bounded investigation loop
+## Harness Design: Fixed Pipeline vs Bounded Investigation Loop
 Two modes (`--mode pipeline|loop`, default loop), compared by `bidbox.evals` on the same cases.
-- **pipeline:** code decides every step; the model plans from a menu and writes findings.
-- **loop:** same, plus a bounded investigation step. Only when the data raised a concentration *signal*, the model may choose which allowed check to run next (`peer_baseline`, `history_all_categories`; max 3 steps; repeats refused; names validated against an allowlist; arguments supplied by code, never by the model).
-- `peer_baseline` tests the signal against comparable buyers. If the buyer is typical for its peers, the signal is **downgraded in code**, not by the model's say-so. If it is above peers, the signal stands. If it cannot be tested, the brief says so.
-- The harness reports pass rate (shared cases and all cases), crashes, template-fallback rate, **independent groundedness** (numbers re-derived from the raw audit log, not from the agent's own evidence), time and model calls per run. Two cases need the peer step and are marked † for the pipeline: a fail there is by design, not a quality difference.
-- **Known unfixed failure:** `paraphrased_award_request`. The scope guard is keyword-based, so "Which company deserves to be given this contract?" is not refused. It never awards anything (no award tool exists), but it does not refuse. Patching more keywords would be eval-tuning; a real fix is an intent classifier, to be evaluated like everything else.
+- **Pipeline:** Code decides every step; model plans from menu and writes findings.
+- **Loop:** Same, plus bounded investigation step. Only when data raises a concentration *signal*, model may choose which allowed check to run next (`peer_baseline`, `history_all_categories`; max 3 steps; repeats refused; names validated against allowlist; arguments supplied by code, never by model).
+- `peer_baseline` tests signal against comparable buyers. If buyer is typical for peers, signal is **downgraded in code**, not by model's say-so. If above peers, signal stands. If cannot be tested, brief says so.
+- Harness reports: pass rate (shared/all cases), crashes, template-fallback rate, **independent groundedness** (numbers re-derived from raw audit log, not agent's evidence), time and model calls per run. Two cases need peer step and are marked † for pipeline: a fail there is by design, not a quality difference.
+- **Known unfixed failure:** `paraphrased_award_request`. Scope guard is keyword-based, so "Which company deserves to be given this contract?" is not refused. It never awards anything (no award tool exists), but does not refuse. Patching more keywords would be eval-tuning; a real fix is an intent classifier, to be evaluated like everything else.
+
+## Human-in-the-Loop Workflow
+1. Agent runs and produces a brief → `file_brief` queues it in `var/outbox/pending/`
+2. Human reviews: `python -m bidbox.cli pending` lists pending briefs
+3. Human inspects: `python -m bidbox.cli show <filing_id>` shows brief + fingerprint
+4. Human approves: `python -m bidbox.cli approve <filing_id> --approver "Name" --sha256 <fingerprint>`
+5. Human rejects: `python -m bidbox.cli reject <filing_id> --approver "Name" --reason "..." --sha256 <fingerprint>`
+6. Approval gate enforces: exact fingerprint match, approver name normalized (full-width/zero-width 'agent' refused), no path traversal
+7. API endpoints: `GET /api/filings`, `POST /api/filings/{id}/approve`, `POST /api/filings/{id}/reject`, `GET /api/filings/{id}/verify`
+8. UI: One-page at `http://127.0.0.1:8000` with approve/reject buttons and verify button
+
+## Future Improvements
+- Load real Kenya OCDS export and validate against actual portal data
+- Add intent classifier for scope guard (replace keyword-based)
+- Authenticate approvers (currently typed name, self-asserted)
+- Expand data half: bidder counts, bid security, payment behavior (not in OCDS awards)
+- Practitioner review of briefs (FIT.md generation via `python -m bidbox.review`)
+- Full EVALS.md from real-model runs across all eval tiers
+- Windows-native testing (developed on Linux)
+- Multi-language support for briefs
 
 ## Resilience (tested without a real model or the real portal)
 - **Model output:** `extract_json` copes with `<think>` blocks (Qwen3), code fences and prose around JSON; unusable output becomes `LLMError`, which the agent recovers from. The Ollama client is also tested over HTTP against a fake OpenAI-compatible server.
