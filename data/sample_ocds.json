@@ -1,0 +1,2951 @@
+{
+ "publisher": {
+  "name": "SYNTHETIC - not real data"
+ },
+ "releases": [
+  {
+   "ocid": "ocds-synth-0001",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of works lot 1",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2026-06-19T12:00:00Z",
+     "startDate": "2026-05-05T12:00:00Z"
+    },
+    "value": {
+     "amount": 7276483,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a1",
+     "date": "2026-06-19T12:00:00Z",
+     "value": {
+      "amount": 6581892,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-007",
+       "name": "Demo Supplier 7 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0002",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of goods lot 2",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2026-04-21T12:00:00Z"
+    },
+    "value": {
+     "amount": 1257165,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a2",
+     "date": "2026-04-21T12:00:00Z",
+     "value": {
+      "amount": 1312560,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0003",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of goods lot 3",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2024-05-18T12:00:00Z",
+     "startDate": "2024-04-06T12:00:00Z"
+    },
+    "value": {
+     "amount": 971839,
+     "currency": "KES"
+    },
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-3.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a3",
+     "date": "2024-05-18T12:00:00Z",
+     "value": {
+      "amount": 823116,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-011",
+       "name": "Demo Supplier 11 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0004",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of goods lot 4",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2025-09-14T12:00:00Z",
+     "startDate": "2025-08-17T12:00:00Z"
+    },
+    "value": {
+     "amount": 1387135,
+     "currency": "KES"
+    }
+   },
+   "awards": []
+  },
+  {
+   "ocid": "ocds-synth-0005",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of works lot 5",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2024-10-10T12:00:00Z",
+     "startDate": "2024-08-26T12:00:00Z"
+    },
+    "value": {
+     "amount": 6149416,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a5",
+     "date": "2024-10-10T12:00:00Z",
+     "value": {
+      "amount": 5855718,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-005",
+       "name": "Demo Supplier 5 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0006",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of goods lot 6",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2025-08-14T12:00:00Z",
+     "startDate": "2025-07-24T12:00:00Z"
+    },
+    "value": {
+     "amount": 1214800,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a6",
+     "date": "2025-08-14T12:00:00Z",
+     "value": {
+      "amount": 1237723,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0007",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of works lot 7",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2026-02-27T12:00:00Z",
+     "startDate": "2026-01-28T12:00:00Z"
+    },
+    "value": {
+     "amount": 12090524,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-7.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a7",
+     "date": "2026-02-27T12:00:00Z",
+     "value": {
+      "amount": 9855800,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-002",
+       "name": "Demo Supplier 2 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0008",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of services lot 8",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2025-06-01T12:00:00Z",
+     "startDate": "2025-04-17T12:00:00Z"
+    },
+    "value": {
+     "amount": 3677657,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a8",
+     "date": "2025-06-01T12:00:00Z",
+     "value": {
+      "amount": 2996329,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-008",
+       "name": "Demo Supplier 8 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0009",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of works lot 9",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2025-03-15T12:00:00Z",
+     "startDate": "2025-03-08T12:00:00Z"
+    },
+    "value": {
+     "amount": 11234816,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-9.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a9",
+     "date": "2025-03-15T12:00:00Z",
+     "value": {
+      "amount": 11414529,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-007",
+       "name": "Demo Supplier 7 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0010",
+   "buyer": {
+    "id": "KE-B-004"
+   },
+   "tender": {
+    "title": "Supply of works lot 10",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2024-03-08T12:00:00Z",
+     "startDate": "2024-02-02T12:00:00Z"
+    },
+    "value": {
+     "amount": 7001508,
+     "currency": "KES"
+    },
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-10.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a10",
+     "date": "2024-03-08T12:00:00Z",
+     "value": {
+      "amount": 6061112,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-003",
+       "name": "Demo Supplier 3 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0011",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of goods lot 11",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2026-03-23T12:00:00Z"
+    },
+    "value": {
+     "amount": 1074758,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a11",
+     "date": "2026-03-23T12:00:00Z",
+     "value": {
+      "amount": 9000000000000,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-012",
+       "name": "Demo Supplier 12 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0012",
+   "buyer": {
+    "id": "KE-B-004"
+   },
+   "tender": {
+    "title": "Supply of services lot 12",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2025-07-02T12:00:00Z",
+     "startDate": "2025-06-11T12:00:00Z"
+    },
+    "value": {
+     "amount": 2164057,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a12",
+     "date": "2025-07-02T12:00:00Z",
+     "value": {
+      "amount": 1915219,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-002",
+       "name": "Demo Supplier 2 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0013",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of goods lot 13",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2024-04-20T12:00:00Z",
+     "startDate": "2024-03-06T12:00:00Z"
+    },
+    "value": {
+     "amount": 701280,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": []
+  },
+  {
+   "ocid": "ocds-synth-0014",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of services lot 14",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2025-08-16T12:00:00Z",
+     "startDate": "2025-08-09T12:00:00Z"
+    },
+    "value": {
+     "amount": 2438121,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-14.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a14",
+     "date": "2025-08-16T12:00:00Z",
+     "value": {
+      "amount": 2111874,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-012",
+       "name": "Demo Supplier 12 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0015",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of services lot 15",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2026-03-23T12:00:00Z",
+     "startDate": "2026-02-23T12:00:00Z"
+    },
+    "value": {
+     "amount": 2544463,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-15.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a15",
+     "date": "2026-03-23T12:00:00Z",
+     "value": {
+      "amount": 2584745,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-011",
+       "name": "Demo Supplier 11 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0016",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of services lot 16",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2025-09-18T12:00:00Z",
+     "startDate": "2025-08-07T12:00:00Z"
+    },
+    "value": {
+     "amount": 2969215,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a16",
+     "date": "2025-09-18T12:00:00Z",
+     "value": {
+      "amount": 2973727,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-004",
+       "name": "Demo Supplier 4 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0017",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of works lot 17",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2026-01-26T12:00:00Z",
+     "startDate": "2025-12-29T12:00:00Z"
+    },
+    "value": {
+     "amount": 4816120,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-17.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a17",
+     "date": "2026-01-26T12:00:00Z",
+     "value": {
+      "amount": 4391372,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-006",
+       "name": "Demo Supplier 6 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0018",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of services lot 18",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2024-04-16T12:00:00Z",
+     "startDate": "2024-03-17T12:00:00Z"
+    },
+    "value": {
+     "amount": 4620753,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-18.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a18",
+     "date": "2024-04-16T12:00:00Z",
+     "value": {
+      "amount": 4667464,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-010",
+       "name": "Demo Supplier 10 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0019",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of works lot 19",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2026-07-26T12:00:00Z",
+     "startDate": "2026-07-12T12:00:00Z"
+    },
+    "value": {
+     "amount": 10593850,
+     "currency": "KES"
+    },
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-19.pdf"
+     }
+    ]
+   },
+   "awards": []
+  },
+  {
+   "ocid": "ocds-synth-0020",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of works lot 20",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2026-12-06T12:00:00Z",
+     "startDate": "2026-11-06T12:00:00Z"
+    },
+    "value": {
+     "amount": 11402970,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-20.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a20",
+     "date": "2026-12-06T12:00:00Z",
+     "value": {
+      "amount": 11421505,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-008",
+       "name": "Demo Supplier 8 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0021",
+   "buyer": {
+    "id": "KE-B-004"
+   },
+   "tender": {
+    "title": "Supply of goods lot 21",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2026-03-01T12:00:00Z",
+     "startDate": "2026-01-15T12:00:00Z"
+    },
+    "value": {
+     "amount": 1476964,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a20",
+     "value": {
+      "amount": 500000,
+      "currency": "KES"
+     },
+     "suppliers": []
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0022",
+   "buyer": {
+    "id": "KE-B-004"
+   },
+   "tender": {
+    "title": "Supply of goods lot 22",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2026-05-18T12:00:00Z"
+    },
+    "value": {
+     "amount": 732303,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-22.pdf"
+     }
+    ]
+   },
+   "awards": []
+  },
+  {
+   "ocid": "ocds-synth-0023",
+   "buyer": {
+    "id": "KE-B-004"
+   },
+   "tender": {
+    "title": "Supply of works lot 23",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2026-09-05T12:00:00Z",
+     "startDate": "2026-08-06T12:00:00Z"
+    },
+    "value": {
+     "amount": 16995654,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a23",
+     "date": "2026-09-05T12:00:00Z",
+     "value": {
+      "amount": 16895831,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-008",
+       "name": "Demo Supplier 8 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0024",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of services lot 24",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2024-10-24T12:00:00Z",
+     "startDate": "2024-09-26T12:00:00Z"
+    },
+    "value": {
+     "amount": 3302852,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-24.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a24",
+     "date": "2024-10-24T12:00:00Z",
+     "value": {
+      "amount": 3040677,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0025",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of goods lot 25",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2024-08-18T12:00:00Z",
+     "startDate": "2024-08-11T12:00:00Z"
+    },
+    "value": {
+     "amount": 890449,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a25",
+     "date": "2024-08-18T12:00:00Z",
+     "value": {
+      "amount": 929041,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0026",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of services lot 26",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2026-09-08T12:00:00Z",
+     "startDate": "2026-08-25T12:00:00Z"
+    },
+    "value": {
+     "amount": 3380947,
+     "currency": "KES"
+    }
+   },
+   "awards": []
+  },
+  {
+   "ocid": "ocds-synth-0027",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of works lot 27",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2024-08-11T12:00:00Z",
+     "startDate": "2024-07-12T12:00:00Z"
+    },
+    "value": {
+     "amount": 11217007,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-27.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a27",
+     "date": "2024-08-11T12:00:00Z",
+     "value": {
+      "amount": 9822677,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-011",
+       "name": "Demo Supplier 11 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0028",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of goods lot 28",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2024-04-24T12:00:00Z",
+     "startDate": "2024-04-17T12:00:00Z"
+    },
+    "value": {
+     "amount": 1029055,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a28",
+     "date": "2024-04-24T12:00:00Z",
+     "value": {
+      "amount": 1037402,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-011",
+       "name": "Demo Supplier 11 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0029",
+   "buyer": {
+    "id": "KE-B-004"
+   },
+   "tender": {
+    "title": "Supply of goods lot 29",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2025-06-11T12:00:00Z",
+     "startDate": "2025-06-04T12:00:00Z"
+    },
+    "value": {
+     "amount": 2442848,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a29",
+     "date": "2025-06-11T12:00:00Z",
+     "value": {
+      "amount": 2223271,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-008",
+       "name": "Demo Supplier 8 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0030",
+   "buyer": {
+    "id": "KE-B-004"
+   },
+   "tender": {
+    "title": "Supply of goods lot 30",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2026-02-26T12:00:00Z",
+     "startDate": "2026-02-19T12:00:00Z"
+    },
+    "value": {
+     "amount": 817090,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a30",
+     "date": "2026-02-26T12:00:00Z",
+     "value": {
+      "amount": 661759,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-005",
+       "name": "Demo Supplier 5 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0031",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of goods lot 31",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "limited",
+    "tenderPeriod": {},
+    "value": {
+     "amount": 4053907,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": []
+  },
+  {
+   "ocid": "ocds-synth-0032",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of goods lot 32",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2024-02-26T12:00:00Z",
+     "startDate": "2024-01-22T12:00:00Z"
+    },
+    "value": {
+     "amount": 1119923,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a32",
+     "date": "2024-02-26T12:00:00Z",
+     "value": {
+      "amount": 1137499,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-005",
+       "name": "Demo Supplier 5 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0033",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of works lot 33",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2025-03-02T12:00:00Z",
+     "startDate": "2025-02-02T12:00:00Z"
+    },
+    "value": {
+     "amount": 5875199,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-33.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a33",
+     "date": "2025-03-02T12:00:00Z",
+     "value": {
+      "amount": 4774157,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0034",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of goods lot 34",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2024-08-17T12:00:00Z",
+     "startDate": "2024-07-18T12:00:00Z"
+    },
+    "value": {
+     "amount": 1518456,
+     "currency": "KES"
+    },
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-34.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a34",
+     "date": "2024-08-17T12:00:00Z",
+     "value": {
+      "amount": 1228791,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-005",
+       "name": "Demo Supplier 5 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0035",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of goods lot 35",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2025-11-27T12:00:00Z",
+     "startDate": "2025-10-28T12:00:00Z"
+    },
+    "value": {
+     "amount": 1219582,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a35",
+     "date": "2025-11-27T12:00:00Z",
+     "value": {
+      "amount": 1271509,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-007",
+       "name": "Demo Supplier 7 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0036",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of works lot 36",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2026-11-05T12:00:00Z",
+     "startDate": "2026-10-01T12:00:00Z"
+    },
+    "value": {
+     "amount": 15014578,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a36",
+     "date": "2026-11-05T12:00:00Z",
+     "value": {
+      "amount": 12065171,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-003",
+       "name": "Demo Supplier 3 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0037",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of services lot 37",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2026-09-22T12:00:00Z",
+     "startDate": "2026-09-08T12:00:00Z"
+    },
+    "value": {
+     "amount": 2347611,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a37",
+     "date": "2026-09-22T12:00:00Z",
+     "value": {
+      "amount": 2147743,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0038",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of goods lot 38",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2025-06-08T12:00:00Z",
+     "startDate": "2025-05-25T12:00:00Z"
+    },
+    "value": {
+     "amount": 1126650,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a38",
+     "date": "2025-06-08T12:00:00Z",
+     "value": {
+      "amount": 901621,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-003",
+       "name": "Demo Supplier 3 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0039",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of works lot 39",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2024-09-25T12:00:00Z",
+     "startDate": "2024-08-14T12:00:00Z"
+    },
+    "value": {
+     "amount": 7657612,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-39.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a39",
+     "date": "2024-09-25T12:00:00Z",
+     "value": {
+      "amount": 6205857,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0040",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of goods lot 40",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2026-03-22T12:00:00Z",
+     "startDate": "2026-03-01T12:00:00Z"
+    },
+    "value": {
+     "amount": 964115,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a40",
+     "date": "2026-03-22T12:00:00Z",
+     "value": {
+      "amount": 944996,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-006",
+       "name": "Demo Supplier 6 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0041",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of works lot 41",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2024-12-17T12:00:00Z",
+     "startDate": "2024-12-22T12:00:00Z"
+    },
+    "value": {
+     "amount": 4923014,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a41",
+     "date": "2024-12-17T12:00:00Z",
+     "value": {
+      "amount": 5058259,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-003",
+       "name": "Demo Supplier 3 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0042",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of services lot 42",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2026-12-21T12:00:00Z",
+     "startDate": "2026-11-23T12:00:00Z"
+    },
+    "value": {
+     "amount": 4900924,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-42.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a42",
+     "date": "2026-12-21T12:00:00Z",
+     "value": {
+      "amount": 4049286,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0043",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of works lot 43",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2026-08-09T12:00:00Z"
+    },
+    "value": {
+     "amount": 10725791,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a43",
+     "date": "2026-08-09T12:00:00Z",
+     "value": {
+      "amount": 10015743,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0044",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of services lot 44",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2024-04-24T12:00:00Z",
+     "startDate": "2024-03-20T12:00:00Z"
+    },
+    "value": {
+     "amount": 3731830,
+     "currency": "KES"
+    },
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-44.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a44",
+     "date": "2024-04-24T12:00:00Z",
+     "value": {
+      "amount": 3774309,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0045",
+   "buyer": {
+    "id": "KE-B-004"
+   },
+   "tender": {
+    "title": "Supply of goods lot 45",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2024-11-21T12:00:00Z",
+     "startDate": "2024-11-07T12:00:00Z"
+    },
+    "value": {
+     "amount": 1966683,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a45",
+     "date": "2024-11-21T12:00:00Z",
+     "value": {
+      "amount": 1938765,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-011",
+       "name": "Demo Supplier 11 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0046",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of works lot 46",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2026-11-16T12:00:00Z",
+     "startDate": "2026-11-14T12:00:00Z"
+    },
+    "value": {
+     "amount": 4369936,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a46",
+     "date": "2026-11-16T12:00:00Z",
+     "value": {
+      "amount": 4334069,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-008",
+       "name": "Demo Supplier 8 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0047",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of services lot 47",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2025-05-15T12:00:00Z",
+     "startDate": "2025-04-15T12:00:00Z"
+    },
+    "value": {
+     "amount": 2095057,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": []
+  },
+  {
+   "ocid": "ocds-synth-0048",
+   "buyer": {
+    "id": "KE-B-004"
+   },
+   "tender": {
+    "title": "Supply of works lot 48",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2024-09-09T12:00:00Z"
+    },
+    "value": {
+     "amount": 4421792,
+     "currency": "KES"
+    },
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-48.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a48",
+     "date": "2024-09-09T12:00:00Z",
+     "value": {
+      "amount": 3846481,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-009",
+       "name": "Demo Supplier 9 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0049",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of goods lot 49",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2024-11-15T12:00:00Z",
+     "startDate": "2024-10-25T12:00:00Z"
+    },
+    "value": {
+     "amount": 1185460,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a49",
+     "date": "2024-11-15T12:00:00Z",
+     "value": {
+      "amount": 1042042,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-007",
+       "name": "Demo Supplier 7 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0050",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of works lot 50",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2025-04-23T12:00:00Z",
+     "startDate": "2025-04-09T12:00:00Z"
+    },
+    "value": {
+     "amount": 6372625,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a50",
+     "date": "2025-04-23T12:00:00Z",
+     "value": {
+      "amount": 5719688,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0051",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of services lot 51",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2025-05-04T12:00:00Z",
+     "startDate": "2025-05-02T12:00:00Z"
+    },
+    "value": {
+     "amount": 2028695,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a51",
+     "date": "2025-05-04T12:00:00Z",
+     "value": {
+      "amount": 2115441,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0052",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of works lot 52",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2025-11-13T12:00:00Z",
+     "startDate": "2025-10-14T12:00:00Z"
+    },
+    "value": {
+     "amount": 5232581,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a52",
+     "date": "2025-11-13T12:00:00Z",
+     "value": {
+      "amount": 4291471,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-012",
+       "name": "Demo Supplier 12 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0053",
+   "buyer": {
+    "id": "KE-B-004"
+   },
+   "tender": {
+    "title": "Supply of services lot 53",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2026-08-02T12:00:00Z",
+     "startDate": "2026-07-03T12:00:00Z"
+    },
+    "value": {
+     "amount": 2108278,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a53",
+     "date": "2026-08-02T12:00:00Z",
+     "value": {
+      "amount": 1867757,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-007",
+       "name": "Demo Supplier 7 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0054",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of works lot 54",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2025-09-22T12:00:00Z",
+     "startDate": "2025-08-18T12:00:00Z"
+    },
+    "value": {
+     "amount": 4399238,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-54.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a54",
+     "date": "2025-09-22T12:00:00Z",
+     "value": {
+      "amount": 4069960,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-004",
+       "name": "Demo Supplier 4 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0055",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of works lot 55",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2025-03-18T12:00:00Z",
+     "startDate": "2025-03-04T12:00:00Z"
+    },
+    "value": {
+     "amount": 7530764,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-55.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a55",
+     "date": "2025-03-18T12:00:00Z",
+     "value": {
+      "amount": 6625731,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-002",
+       "name": "Demo Supplier 2 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0056",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of works lot 56",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2024-07-13T12:00:00Z",
+     "startDate": "2024-06-15T12:00:00Z"
+    },
+    "value": {
+     "amount": 11156559,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a56",
+     "date": "2024-07-13T12:00:00Z",
+     "value": {
+      "amount": 11022990,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-006",
+       "name": "Demo Supplier 6 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0057",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of works lot 57",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2026-09-21T12:00:00Z",
+     "startDate": "2026-08-22T12:00:00Z"
+    },
+    "value": {
+     "amount": 8837636,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a57",
+     "date": "2026-09-21T12:00:00Z",
+     "value": {
+      "amount": 7919761,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-004",
+       "name": "Demo Supplier 4 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0058",
+   "buyer": {
+    "id": "KE-B-004"
+   },
+   "tender": {
+    "title": "Supply of services lot 58",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2024-01-14T12:00:00Z",
+     "startDate": "2023-12-03T12:00:00Z"
+    },
+    "value": {
+     "amount": 2296316,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a58",
+     "date": "2024-01-14T12:00:00Z",
+     "value": {
+      "amount": 2118251,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-010",
+       "name": "Demo Supplier 10 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0059",
+   "buyer": {
+    "id": "KE-B-004"
+   },
+   "tender": {
+    "title": "Supply of goods lot 59",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2025-02-08T12:00:00Z",
+     "startDate": "2024-12-28T12:00:00Z"
+    },
+    "value": {
+     "amount": 1255152,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a59",
+     "date": "2025-02-08T12:00:00Z",
+     "value": {
+      "amount": 1224088,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-012",
+       "name": "Demo Supplier 12 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0060",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of works lot 60",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2024-10-02T12:00:00Z",
+     "startDate": "2024-09-11T12:00:00Z"
+    },
+    "value": {
+     "amount": 8376550,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a60",
+     "date": "2024-10-02T12:00:00Z",
+     "value": {
+      "amount": 8033721,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0061",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of services lot 61",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2026-07-09T12:00:00Z"
+    },
+    "value": {
+     "amount": 1529919,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a61",
+     "date": "2026-07-09T12:00:00Z",
+     "value": {
+      "amount": 1400140,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0062",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of works lot 62",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2024-07-23T12:00:00Z",
+     "startDate": "2024-07-02T12:00:00Z"
+    },
+    "value": {
+     "amount": 7781581,
+     "currency": "KES"
+    },
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-62.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a62",
+     "date": "2024-07-23T12:00:00Z",
+     "value": {
+      "amount": 7484263,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-011",
+       "name": "Demo Supplier 11 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0063",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of goods lot 63",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2025-08-02T12:00:00Z",
+     "startDate": "2025-07-05T12:00:00Z"
+    },
+    "value": {
+     "amount": 799956,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a63",
+     "date": "2025-08-02T12:00:00Z",
+     "value": {
+      "amount": 679579,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-007",
+       "name": "Demo Supplier 7 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0064",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of works lot 64",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2024-04-09T12:00:00Z",
+     "startDate": "2024-03-12T12:00:00Z"
+    },
+    "value": {
+     "amount": 3261469,
+     "currency": "KES"
+    },
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-64.pdf"
+     }
+    ]
+   },
+   "awards": []
+  },
+  {
+   "ocid": "ocds-synth-0065",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of works lot 65",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2026-10-05T12:00:00Z",
+     "startDate": "2026-09-14T12:00:00Z"
+    },
+    "value": {
+     "amount": 15484885,
+     "currency": "KES"
+    },
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-65.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a65",
+     "date": "2026-10-05T12:00:00Z",
+     "value": {
+      "amount": 12937277,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-010",
+       "name": "Demo Supplier 10 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0066",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of goods lot 66",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2026-12-04T12:00:00Z",
+     "startDate": "2026-10-20T12:00:00Z"
+    },
+    "value": {
+     "amount": 733433,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a66",
+     "date": "2026-12-04T12:00:00Z",
+     "value": {
+      "amount": 758348,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0067",
+   "buyer": {
+    "id": "KE-B-004"
+   },
+   "tender": {
+    "title": "Supply of services lot 67",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2025-03-04T12:00:00Z",
+     "startDate": "2025-01-28T12:00:00Z"
+    },
+    "value": {
+     "amount": 2117005,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-67.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a67",
+     "date": "2025-03-04T12:00:00Z",
+     "value": {
+      "amount": 1990582,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-002",
+       "name": "Demo Supplier 2 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0068",
+   "buyer": {
+    "id": "KE-B-004"
+   },
+   "tender": {
+    "title": "Supply of goods lot 68",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2025-01-23T12:00:00Z"
+    },
+    "value": {
+     "amount": 602350,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": []
+  },
+  {
+   "ocid": "ocds-synth-0069",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of goods lot 69",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2024-07-08T12:00:00Z",
+     "startDate": "2024-06-03T12:00:00Z"
+    },
+    "value": {
+     "amount": 387471,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a69",
+     "date": "2024-07-08T12:00:00Z",
+     "value": {
+      "amount": 354928,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0070",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of goods lot 70",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2025-01-09T12:00:00Z",
+     "startDate": "2024-12-26T12:00:00Z"
+    },
+    "value": {
+     "amount": 1383388,
+     "currency": "KES"
+    }
+   },
+   "awards": []
+  },
+  {
+   "ocid": "ocds-synth-0071",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of works lot 71",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2026-01-27T12:00:00Z",
+     "startDate": "2025-12-28T12:00:00Z"
+    },
+    "value": {
+     "amount": 12799117,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": []
+  },
+  {
+   "ocid": "ocds-synth-0072",
+   "buyer": {
+    "id": "KE-B-003",
+    "name": "Demo University C"
+   },
+   "tender": {
+    "title": "Supply of works lot 72",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2024-05-27T12:00:00Z",
+     "startDate": "2024-04-22T12:00:00Z"
+    },
+    "value": {
+     "amount": 4278790,
+     "currency": "KES"
+    },
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-72.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a72",
+     "date": "2024-05-27T12:00:00Z",
+     "value": {
+      "amount": 3915928,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-006",
+       "name": "Demo Supplier 6 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0073",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of services lot 73",
+    "status": "complete",
+    "mainProcurementCategory": "services",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2024-07-03T12:00:00Z",
+     "startDate": "2024-05-22T12:00:00Z"
+    },
+    "value": {
+     "amount": 2542249,
+     "currency": "KES"
+    }
+   },
+   "awards": [
+    {
+     "id": "a73",
+     "date": "2024-07-03T12:00:00Z",
+     "value": {
+      "amount": 2304901,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0074",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of goods lot 74",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2024-08-23T12:00:00Z",
+     "startDate": "2024-08-02T12:00:00Z"
+    },
+    "value": {
+     "amount": 962848,
+     "currency": "KES"
+    },
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-74.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a74",
+     "date": "2024-08-23T12:00:00Z",
+     "value": {
+      "amount": 984816,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0075",
+   "buyer": {
+    "id": "KE-B-001",
+    "name": "Demo County Government A"
+   },
+   "tender": {
+    "title": "Supply of goods lot 75",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2025-05-12T12:00:00Z"
+    },
+    "value": {
+     "amount": 1685684,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-75.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a75",
+     "date": "2025-05-12T12:00:00Z",
+     "value": {
+      "amount": 1447794,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0076",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of works lot 76",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "selective",
+    "tenderPeriod": {
+     "endDate": "2024-09-08T12:00:00Z"
+    },
+    "value": {
+     "amount": 6251296,
+     "currency": "KES"
+    },
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-76.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a76",
+     "date": "2024-09-08T12:00:00Z",
+     "value": {
+      "amount": 5160964,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0077",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of works lot 77",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2024-04-20T12:00:00Z",
+     "startDate": "2024-03-09T12:00:00Z"
+    },
+    "value": {
+     "amount": 4577959,
+     "currency": "KES"
+    }
+   },
+   "awards": []
+  },
+  {
+   "ocid": "ocds-synth-0078",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of works lot 78",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "open",
+    "tenderPeriod": {
+     "endDate": "2026-02-21T12:00:00Z",
+     "startDate": "2026-02-07T12:00:00Z"
+    },
+    "value": {
+     "amount": 7541805,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a78",
+     "date": "2026-02-21T12:00:00Z",
+     "value": {
+      "amount": 6674529,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-006",
+       "name": "Demo Supplier 6 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0079",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of goods lot 79",
+    "status": "complete",
+    "mainProcurementCategory": "goods",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2026-02-07T12:00:00Z",
+     "startDate": "2026-01-10T12:00:00Z"
+    },
+    "value": {
+     "amount": 1059777,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts."
+   },
+   "awards": [
+    {
+     "id": "a79",
+     "date": "2026-02-07T12:00:00Z",
+     "value": {
+      "amount": 874684,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-007",
+       "name": "Demo Supplier 7 Ltd"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ocid": "ocds-synth-0080",
+   "buyer": {
+    "id": "KE-B-002",
+    "name": "Demo Hospital B"
+   },
+   "tender": {
+    "title": "Supply of works lot 80",
+    "status": "complete",
+    "mainProcurementCategory": "works",
+    "procurementMethod": "limited",
+    "tenderPeriod": {
+     "endDate": "2024-12-09T12:00:00Z",
+     "startDate": "2024-11-25T12:00:00Z"
+    },
+    "value": {
+     "amount": 9123016,
+     "currency": "KES"
+    },
+    "eligibilityCriteria": "Valid tax compliance certificate; registered business; 2 similar contracts.",
+    "documents": [
+     {
+      "url": "https://example.org/synthetic/tender-80.pdf"
+     }
+    ]
+   },
+   "awards": [
+    {
+     "id": "a80",
+     "date": "2024-12-09T12:00:00Z",
+     "value": {
+      "amount": 8010833,
+      "currency": "KES"
+     },
+     "suppliers": [
+      {
+       "id": "KE-S-001",
+       "name": "Demo Supplier 1 Ltd"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

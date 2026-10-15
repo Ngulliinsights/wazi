@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bid Box: tender readiness briefs</title>
+<style>
+:root{--bg:#f6f5f1;--fg:#1d2320;--mut:#5b655f;--card:#fff;--line:#d9d6cc;--acc:#1f6f55;--warn:#8a5a00;--bad:#9b2c2c}
+@media(prefers-color-scheme:dark){:root{--bg:#141816;--fg:#e8ece9;--mut:#9aa59f;--card:#1c211f;--line:#2e3532;--acc:#4fb890;--warn:#e0b04a;--bad:#e07a7a}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif}
+header{padding:14px 18px;border-bottom:1px solid var(--line)}h1{font-size:18px;margin:0}
+.bar{display:flex;flex-wrap:wrap;gap:8px;padding:8px 18px;font-size:13px}
+.pill{border:1px solid var(--line);border-radius:99px;padding:2px 10px;color:var(--mut)}.pill.w{color:var(--warn);border-color:var(--warn)}
+main{display:grid;grid-template-columns:minmax(260px,1fr) minmax(300px,2fr);gap:14px;padding:14px 18px}
+@media(max-width:800px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+h2{font-size:14px;margin:0 0 8px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+select,input,button{font:inherit;padding:7px 9px;border-radius:7px;border:1px solid var(--line);background:var(--card);color:var(--fg);width:100%;margin-bottom:8px}
+button{background:var(--acc);color:#fff;border:0;cursor:pointer}button:disabled{opacity:.5}button.alt{background:transparent;color:var(--bad);border:1px solid var(--bad)}
+.row{display:flex;gap:8px}.row>*{flex:1}
+#trace div{padding:3px 0;border-bottom:1px dashed var(--line);font-size:13px}#trace .t{color:var(--mut)}#trace .bad{color:var(--bad)}#trace .ok{color:var(--acc)}
+#brief{overflow-x:auto}#brief table{border-collapse:collapse;width:100%}#brief td,#brief th{border:1px solid var(--line);padding:4px 8px;text-align:left}
+#brief blockquote{margin:8px 0;padding:6px 10px;border-left:3px solid var(--warn);color:var(--mut)}#brief li{margin:6px 0}#brief .src{color:var(--mut);font-size:12px}
+#msg{font-size:13px;min-height:18px}.bad{color:var(--bad)}.ok{color:var(--acc)}
+</style></head><body>
+<header><h1>Bid Box</h1><div class="pill" style="display:inline-block;margin-top:4px">Prepares a sourced brief. Never awards, ranks or advises to bid.</div></header>
+<div class="bar"><span class="pill w">DRAFT: not an award decision</span><span class="pill w" id="replay">Replay mode: closed tenders and synthetic data only; live tenders are refused</span><span class="pill" id="llm"></span></div>
+<main>
+<section>
+ <div class="card"><h2>1. Choose a tender</h2>
+  <input id="q" placeholder="Search id or title"><select id="tender" size="8"></select>
+  <div class="row"><select id="mode"><option value="loop">Investigating loop</option><option value="pipeline">Fixed pipeline</option></select>
+  <input id="asof" aria-label="Reference date"></div>
+  <select id="aud" aria-label="Who is reading"><option value="buyer">Procurement manager view</option><option value="supplier">Supplier view</option></select>
+  <button id="go">Prepare brief</button><div id="msg"></div></div>
+ <div class="card"><h2>2. What the agent did</h2><div id="trace"><div class="t">Nothing yet.</div></div></div>
+</section>
+<section>
+ <div class="card"><h2>3. Brief (draft)</h2><div id="brief" class="t">Run the agent to see a brief here.</div></div>
+ <div class="card" id="gate" hidden><h2>4. Human decision</h2>
+  <input id="who" placeholder="Your full name (a named person is required)"><input id="why" placeholder="Reason (optional, for rejection)">
+  <button id="vf" class="alt" style="color:var(--acc);border-color:var(--acc)">Check this brief can be reproduced</button>
+  <div class="row"><button id="ok">Approve filing</button><button id="no" class="alt">Reject</button></div><div id="gmsg"></div></div>
+</section></main>
+<script>
+const $=id=>document.getElementById(id);let rid=null,nxt=0,fid=null,timer=null,fhash=null;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const inl=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`(.+?)`/g,'<code>$1</code>').replace(/(^|\s)_(.+?)_(?=\s|$|[.,])/g,'$1<i>$2</i>');
+function md(t){let h='',tb=false,li=false;const close=()=>{if(tb){h+='</table>';tb=false}if(li){h+='</ul>';li=false}};
+ for(const l of t.split('\n')){
+  if(/^\|[\s|-]+\|$/.test(l)){continue}
+  if(l.startsWith('|')){if(!tb){close();h+='<table>';tb=true}h+='<tr>'+l.slice(1,-1).split('|').map(c=>'<td>'+inl(c.trim())+'</td>').join('')+'</tr>';continue}
+  if(l.startsWith('- ')){if(!li){close();h+='<ul>';li=true}h+='<li>'+inl(l.slice(2));continue}
+  if(/^\s+_Source/.test(l)){h+='<div class="src">'+inl(l.trim())+'</div>';continue}
+  close();if(l.startsWith('## '))h+='<h3>'+inl(l.slice(3))+'</h3>';else if(l.startsWith('# '))h+='<h2 style="text-transform:none;color:inherit;font-size:18px">'+inl(l.slice(2))+'</h2>';
+  else if(l.startsWith('> '))h+='<blockquote>'+inl(l.slice(2))+'</blockquote>';else if(l.trim())h+='<p>'+inl(l)+'</p>'}
+ close();return h}
+const say={intake:e=>'Read request for '+e.ocid,refused:e=>['Refused: '+e.reason,'bad'],plan:e=>'Plan: run '+e.checks.join(' + '),plan_fallback:e=>['Model plan unusable; used default plan','bad'],
+ tool_call:e=>[(e.ok?'Called ':'Failed ')+e.tool+' ('+e.ms+' ms)'+(e.server?' via '+e.server:''),e.ok?'ok':'bad'],history_key:e=>'Buyer name missing; matched on '+e.used,
+ history_broadened:e=>'Thin category history; widened to all categories',benchmark_skipped:e=>'Price benchmark skipped: '+e.reason,investigate_skipped:e=>'No signal to test, so no investigation',
+ investigate_step:e=>'Testing the signal: '+e.tool,investigate_stop:e=>'Investigation stopped',evidence_built:e=>'Built '+e.n+' sourced evidence items',
+ synthesize_attempt:e=>'Writing findings (attempt '+e.attempt+')',verify_result:e=>['Checked findings: '+e.accepted+' accepted, '+e.rejected+' rejected',e.rejected?'bad':'ok'],
+ fallback_findings:e=>['Model gave nothing grounded; used template findings','bad'],filed:e=>['Queued for human approval','ok'],not_found:e=>['Tender not found','bad']};
+function line(e){const f=say[e.event];let r=f?f(e):e.event;let c='';if(Array.isArray(r)){c=r[1];r=r[0]}
+ const d=document.createElement('div');d.className=c;d.innerHTML='<span class="t">'+new Date(e.ts).toLocaleTimeString()+'</span> '+esc(r);$('trace').appendChild(d)}
+async function j(u,o){const r=await fetch(u,o);const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.detail||r.status);return b}
+async function load(){const t=await j('/api/tenders?q='+encodeURIComponent($('q').value));$('tender').innerHTML=t.map(x=>`<option value="${esc(x.ocid)}">${esc(x.ocid)}  ${esc(x.buyer_name||x.buyer_id||'')} · ${esc(x.category||'')}${x.live?'  [LIVE: refused]':''}</option>`).join('')}
+let fails=0;
+async function poll(){try{const e=await j(`/api/runs/${rid}/events?after=${nxt}`);if(nxt===0)$('trace').innerHTML='';e.events.forEach(line);nxt=e.next;
+ const r=await j('/api/runs/'+rid);fails=0;if(!r.done){$('msg').className='';$('msg').textContent=r.status==='queued'?'Waiting for the model...':'Working...';timer=setTimeout(poll,1000);return}
+ $('go').disabled=false;$('msg').className=r.status==='awaiting_human_approval'?'ok':'bad';
+ $('msg').textContent=r.status==='awaiting_human_approval'?`Done in ${r.seconds}s (${r.llm_calls} model calls${r.used_fallback?', template fallback used':''}).`:'Ended: '+r.status+(r.error?': '+r.error:'');
+ if(r.filing_id){fid=r.filing_id;const f=(await j('/api/filings')).find(x=>x.filing_id===fid);if(f){fhash=f.md_sha256;$('brief').innerHTML=md(f.markdown)+'<p class="src">Brief fingerprint (sha256): <code>'+esc(f.md_sha256.slice(0,12))+'</code>. A decision applies only to exactly this content.</p>';$('gate').hidden=false;$('gmsg').textContent='';$('ok').disabled=$('no').disabled=false}}
+ }catch(err){fails++;if(fails>=5){$('go').disabled=false;$('msg').className='bad';$('msg').textContent='Lost contact with the server: '+err.message;return}
+  $('msg').className='bad';$('msg').textContent=`Connection problem, retrying (${fails}/5)...`;timer=setTimeout(poll,Math.min(8000,1000*fails*2))}}
+$('go').onclick=async()=>{if(!$('tender').value){$('msg').textContent='Choose a tender first.';return}
+ $('go').disabled=true;$('gate').hidden=true;$('brief').textContent='Working...';$('trace').innerHTML='';nxt=0;clearTimeout(timer);
+ try{const r=await j('/api/runs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ocid:$('tender').value,mode:$('mode').value,audience:$('aud').value,as_of:$('asof').value||null})});rid=r.run_id;poll()}catch(e){$('msg').className='bad';$('msg').textContent=e.message;$('go').disabled=false}};
+async function decide(kind){try{const r=await j(`/api/filings/${fid}/${kind}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({approver:$('who').value,reason:$('why').value,brief_sha256:fhash})});
+ $('gmsg').className='ok';$('gmsg').textContent=`${r.action} by ${r.approver} at ${r.decided_at}`;$('ok').disabled=$('no').disabled=true}catch(e){$('gmsg').className='bad';$('gmsg').textContent=e.message}}
+$('vf').onclick=async()=>{try{const r=await j(`/api/filings/${fid}/verify`);$('gmsg').className=r.verdict==='REPRODUCED'?'ok':'bad';$('gmsg').innerHTML=esc(r.verdict)+r.checks.filter(c=>!c.ok).map(c=>'<br>'+esc(c.check)+(c.detail?': '+esc(c.detail):'')).join('')}catch(e){$('gmsg').className='bad';$('gmsg').textContent=e.message}};
+$('ok').onclick=()=>decide('approve');$('no').onclick=()=>decide('reject');$('q').oninput=load;
+(async()=>{const c=await j('/api/config');$('asof').value=c.as_of;$('llm').textContent='model: '+(c.llm==='stub'?'STUB (demo only, not a real model)':c.llm);await load()})();
+</script></body></html>

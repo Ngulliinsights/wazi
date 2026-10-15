@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bidbox"
+version = "0.1.0"
+description = "Open-contracting tender-readiness agent backend (MCP server). Prepares sourced briefs; never awards."
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = ["mcp>=1.2,<2", "pydantic>=2", "langgraph>=0.6", "mcp-server-fetch", "fastapi", "uvicorn"]
+
+[project.optional-dependencies]
+dev = ["pytest", "httpx"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["mcp: runs the real MCP servers as subprocesses (slower; the wiring contract)", "slow: long-running (mutation, large evals)"]
+
+[tool.setuptools]
+packages = ["bidbox", "bidbox.agent"]          # explicit: the repo also holds data/, scripts/, tests/ which are not packages
+
+[tool.setuptools.package-data]
+bidbox = ["static/*.html"]
