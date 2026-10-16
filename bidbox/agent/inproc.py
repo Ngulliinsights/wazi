@@ -11,19 +11,24 @@ from .. import audit_log, tools
 TOOLS = ("get_tender_notice", "buyer_award_history", "price_benchmark", "peer_baseline", "window_baseline", "file_brief")
 
 
+def _result(text: str, is_error: bool = False):
+    """Shaped like an MCP CallToolResult as far as the graph and fetcher read it: isError, content[i].type/.text."""
+    return SimpleNamespace(isError=is_error, content=[SimpleNamespace(type="text", text=text)])
+
+
 class InProcSession:
     def __init__(self, run_id: str):
         self.run_id = run_id
 
-    async def call_tool(self, name: str, args: dict):
+    async def call_tool(self, name: str, args: dict | None = None):
+        if name not in TOOLS:
+            return _result(f"unknown tool {name!r}", True)
         tok = audit_log.run_id_var.set(self.run_id)         # server-side logs carry the AGENT's run id, as they do across processes
         try:
-            if name not in TOOLS:
-                raise ValueError(f"unknown tool {name!r}")
-            out = getattr(tools, name)(**args)
-            return SimpleNamespace(isError=False, content=[SimpleNamespace(text=json.dumps(out, default=str))])
+            out = getattr(tools, name)(**(args or {}))
+            return _result(json.dumps(out, default=str))
         except Exception as e:  # noqa: BLE001 - the real server reports tool errors the same way
-            return SimpleNamespace(isError=True, content=[SimpleNamespace(text=str(e))])
+            return _result(str(e) or repr(e), True)
         finally:
             audit_log.run_id_var.reset(tok)
 

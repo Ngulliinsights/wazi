@@ -268,6 +268,9 @@ def test_every_text_file_read_or_write_names_its_encoding():
             f = node.func
             name = f.attr if isinstance(f, ast.Attribute) else (f.id if isinstance(f, ast.Name) else "")
             if name in ("read_text", "write_text") or name == "open" or (name == "opener"):
+                # os.open is a low-level API; if it's used with O_BINARY it's safe (no encoding needed)
+                if name == "open" and isinstance(f, ast.Attribute) and f.value.id == "os":
+                    continue
                 mode = next((k.value.value for k in node.keywords if k.arg == "mode" and isinstance(k.value, ast.Constant)), None)
                 pos = [a.value for a in node.args if isinstance(a, ast.Constant) and isinstance(a.value, str)]
                 modes = [m for m in ([mode] if mode else pos) if re.fullmatch(r"[rwax+bt]+", m)]

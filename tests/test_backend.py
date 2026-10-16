@@ -118,11 +118,13 @@ def test_price_benchmark_matches_hand_computed_values(monkeypatch):
     A value of 125 therefore has robust z of 0 and ratio 1.0."""
     import sqlite3
     from bidbox import store
-    conn = sqlite3.connect(":memory:"); conn.row_factory = sqlite3.Row; conn.executescript(store.SCHEMA)
-    for i, amt in enumerate([100, 110, 120, 130, 140, 150, 1_000_000_000]):
-        conn.execute("INSERT INTO tenders(ocid,category) VALUES(?,?)", (f"o{i}", "goods"))
-        conn.execute("INSERT INTO awards VALUES(?,?,?,?,?,?,?)", (f"o{i}", "a", "s", "S", amt, "KES", None))
-    monkeypatch.setattr(tools, "connect", lambda: conn)
+    def fresh_conn():
+        c = sqlite3.connect(":memory:"); c.row_factory = sqlite3.Row; c.executescript(store.SCHEMA)
+        for i, amt in enumerate([100, 110, 120, 130, 140, 150, 1_000_000_000]):
+            c.execute("INSERT INTO tenders(ocid,category) VALUES(?,?)", (f"o{i}", "goods"))
+            c.execute("INSERT INTO awards VALUES(?,?,?,?,?,?,?)", (f"o{i}", "a", "s", "S", amt, "KES", None))
+        return c
+    monkeypatch.setattr(tools, "connect", fresh_conn)
     r = tools.price_benchmark("goods", 125)
     assert r["median"] == 125 and r["n_used"] == 6 and r["n_excluded_outliers"] == 1
     assert r["excluded_outliers"][0]["amount"] == 1_000_000_000
@@ -133,12 +135,15 @@ def test_price_benchmark_matches_hand_computed_values(monkeypatch):
 def _fixture_db(monkeypatch, rows, buyer="B1", category="goods"):
     import sqlite3
     from bidbox import store
-    conn = sqlite3.connect(":memory:"); conn.row_factory = sqlite3.Row; conn.executescript(store.SCHEMA)
-    for i, (sup, amt) in enumerate(rows):
-        conn.execute("INSERT INTO tenders(ocid,category,buyer_id,buyer_name) VALUES(?,?,?,?)", (f"o{i}", category, buyer, "Buyer One"))
-        conn.execute("INSERT INTO awards VALUES(?,?,?,?,?,?,?)", (f"o{i}", "a", sup, sup, amt, "KES", f"2025-01-{i+1:02d}"))
-    monkeypatch.setattr(tools, "connect", lambda: conn)
-    return conn
+    def fresh_conn():
+        c = sqlite3.connect(":memory:"); c.row_factory = sqlite3.Row; c.executescript(store.SCHEMA)
+        for i, (sup, amt) in enumerate(rows):
+            c.execute("INSERT INTO tenders(ocid,category,buyer_id,buyer_name) VALUES(?,?,?,?)", (f"o{i}", category, buyer, "Buyer One"))
+            c.execute("INSERT INTO awards VALUES(?,?,?,?,?,?,?)", (f"o{i}", "a", sup, sup, amt, "KES", f"2025-01-{i+1:02d}"))
+        return c
+    monkeypatch.setattr(tools, "connect", fresh_conn)
+    # For backward compatibility, return a connection for the first call
+    return fresh_conn()
 
 
 def test_concentration_signal_boundaries(monkeypatch):

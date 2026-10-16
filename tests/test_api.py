@@ -45,9 +45,9 @@ def sha_of(c, fid):
 
 def test_page_carries_the_safety_banners_and_no_award_button(c):
     html = c.get("/").text
-    assert "DRAFT: not an award decision" in html and "Replay mode" in html and "Never awards" in html
-    assert "Approve filing" in html and "Reject" in html
-    assert "Award" not in html.replace("Never awards", "").replace("not an award decision", "")   # no award control anywhere on the page
+    assert "DRAFT: not an award decision" in html and "Closed tenders and synthetic data only" in html
+    assert "never awards" in html and "Approve filing" in html and "Reject" in html
+    assert "Award" not in html.replace("never awards", "").replace("not an award decision", "")   # no award control anywhere on the page
 
 
 def test_config_and_tender_search(c):
