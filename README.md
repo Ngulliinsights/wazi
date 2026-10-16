@@ -16,6 +16,8 @@ It never awards a tender and cannot approve its own filings.
 **Data half:** Built on tender, award and price history. Bid documents are not published by the portals, so no bid evaluation.
 
 **Scope and limits:** Wazi covers the pre-evaluation readiness slice of the procurement lifecycle (approximately one-quarter to one-third of the full cycle). It addresses market analysis (price benchmarking against past awards), tender notice quality (completeness checks), and buyer award history (supplier concentration signals). It does NOT cover needs identification, sourcing strategy, bid evaluation, award decision, contract management, or post-award review. Legal compliance checks (PPADA minimum tender periods, thresholds, AGPO preference schemes, conflict of interest) are intentionally out of scope. The brief structure and "signal" labels have not been validated with a procurement practitioner; this is synthetic data only.
+
+**How it fits with existing systems:** Wazi works on public award and tender data and sits before evaluation. It does not evaluate bids, because portals publish notices and awards but not bid documents. How it fits alongside the portals and finance systems offices already use has not been validated with a practitioner.
 **One command (recommended):**
 ```bash
 python run.py          # Windows: py run.py
