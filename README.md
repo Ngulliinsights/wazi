@@ -15,7 +15,7 @@ It never awards a tender and cannot approve its own filings.
 **Data:** Currently a SYNTHETIC sample (`data/sample_ocds.json`). Swap in a real OCDS export with `python -m bidbox.cli load <file>`.
 **Data half:** Built on tender, award and price history. Bid documents are not published by the portals, so no bid evaluation.
 
-## Setup / Installation
+**Scope and limits:** Wazi covers the pre-evaluation readiness slice of the procurement lifecycle (approximately one-quarter to one-third of the full cycle). It addresses market analysis (price benchmarking against past awards), tender notice quality (completeness checks), and buyer award history (supplier concentration signals). It does NOT cover needs identification, sourcing strategy, bid evaluation, award decision, contract management, or post-award review. Legal compliance checks (PPADA minimum tender periods, thresholds, AGPO preference schemes, conflict of interest) are intentionally out of scope. The brief structure and "signal" labels have not been validated with a procurement practitioner; this is synthetic data only.
 **One command (recommended):**
 ```bash
 python run.py          # Windows: py run.py

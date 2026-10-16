@@ -81,7 +81,7 @@ def test_peer_group_falls_back_from_method_and_category_to_method_then_category(
 
 def test_sources_start_with_the_tender_itself_and_all_exist(monkeypatch):
     r = _scene(monkeypatch, 5)
-    assert r["sources"][0] == {"ocid": "t", "field_path": "tender.tenderPeriod.startDate"} and len(r["sources"]) == 2 + 5
+    assert r["sources"][0] == {"ocid": "t", "field_path": "tender.tenderPeriod.startDate"} and len(r["sources"]) == 2 + min(8, 20)
 
 
 # ---------- loader and migration

@@ -159,7 +159,7 @@ def buyer_award_history(buyer: str, category: str | None = None, limit: int = 20
             "distinct_suppliers": len(wins), "top_supplier": labels.get(top_key), "top_supplier_share": share,
             "flags": flags,
             "awards": [dict(r) for r in rows[:limit]],
-            "sources": [{"ocid": r["ocid"], "field_path": "awards[].suppliers[]"} for r in rows[:limit]]}
+            "sources": [{"ocid": r["ocid"], "field_path": "awards[].suppliers[]"} for r in rows[:50]]}
 
 
 @logged
@@ -205,7 +205,7 @@ def price_benchmark(category: str, amount: float, currency: str = "KES",
             "median": kmed, "p25": p25, "p75": p75,
             "ratio_to_median": round(amount / kmed, 2), "robust_z": rz, "spread_basis": basis, "position": pos,
             "low_confidence": len(kv) < BENCH_LOW_CONFIDENCE_N,
-            "sources": [{"ocid": o, "field_path": "awards[].value.amount"} for o, _ in kept[:10]]}
+            "sources": [{"ocid": o, "field_path": "awards[].value.amount"} for o, _ in kept[:50]]}
 
 
 @logged
@@ -257,7 +257,7 @@ def window_baseline(ocid: str, min_peers: int = 5) -> dict:
             return {**base, "window_days": days, "n_peers": len(w), "peer_group": label, "peer_median_days": med,
                     "peer_p25_days": p25, "peer_p75_days": p75, "low_confidence": len(w) < 10,
                     "position": "shorter_than_peers" if short else ("longer_than_peers" if long_ else "typical"),
-                    "sources": srcs + [{"ocid": o, "field_path": "tender.tenderPeriod.endDate"} for _, o in peers[:5]]}
+                    "sources": srcs + [{"ocid": o, "field_path": "tender.tenderPeriod.endDate"} for _, o in peers[:20]]}
     return {**base, "window_days": days, "position": "insufficient_peers", "n_peers": 0, "low_confidence": True, "sources": srcs}
 
 
@@ -305,7 +305,7 @@ def peer_baseline(buyer: str, category: str, min_awards: int = 5) -> dict:
     peers = sorted(share(d) for g, d in by_buyer.items() if g not in target_groups and len(d["keys"]) >= min_awards)
     out = {"found": True, "buyer": buyer, "category": category, "buyer_share": round(share(tgt), 3),
            "buyer_awards": len(tgt["keys"]), "n_peers": len(peers),
-           "sources": [{"ocid": o, "field_path": "awards[].suppliers[]"} for o in sorted(tgt["ocids"])[:5]]}
+           "sources": [{"ocid": o, "field_path": "awards[].suppliers[]"} for o in sorted(tgt["ocids"])[:20]]}
     if len(peers) < MIN_PEER_BUYERS:
         return {**out, "position": "insufficient_peers", "low_confidence": True}
     med = statistics.median(peers)

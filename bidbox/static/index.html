@@ -51,8 +51,8 @@ fieldset{border:0;margin:0;padding:0}.seg{display:flex;gap:8px;align-items:flex-
    <label class="seg"><input type="radio" name="a" id="aud-buyer" checked><span>Procurement manager<small>Check my own notice: gaps to fix, my estimate, my award pattern</small></span></label>
    <label class="seg"><input type="radio" name="a" id="aud-sup"><span>Supplier<small>Decide whether this is worth a closer look</small></span></label></fieldset>
   <label for="asof">Reference date</label><input id="asof" type="date"><small>The tender is read as it stood on this date. Tenders still open today are refused.</small>
-  <details><summary>Advanced</summary><label for="mode">How much checking</label>
-   <select id="mode"><option value="loop">Test any signal against comparable buyers (recommended)</option><option value="pipeline">Fixed steps only</option></select></details>
+  <details><summary>Advanced</summary><label for="mode">Analysis depth</label>
+   <select id="mode"><option value="loop">Full analysis with peer comparison (recommended)</option><option value="pipeline">Standard checks only</option></select></details>
   <button id="go" disabled style="margin-top:12px">Prepare brief</button><div id="msg" role="status" aria-live="polite"></div></div>
  <div class="card"><h2>2. What the agent did</h2><div id="trace" aria-live="polite"><div class="t">Nothing yet. Hover a step for its technical detail.</div></div></div>
 </section>
