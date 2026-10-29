@@ -16,6 +16,7 @@ from mcp.client.stdio import stdio_client
 
 from .. import audit_log, policy, provenance as prov
 from ..findings import MAX_STATEMENT, has_verdict
+from .. import tools
 from . import evidence as ev
 from . import fetcher
 from .inproc import inproc_session
@@ -24,8 +25,7 @@ from .llm import LLMError, OllamaLLM, QuotaExhausted, StubLLM  # noqa: F401  (St
 MAX_ATTEMPTS = 2
 MAX_INVEST_STEPS = 3
 MAX_DOCS = 2
-THIN_HISTORY = 5                                   # fewer in-category awards than this triggers the all-categories recovery
-DEFAULT_CHECKS = ["history", "benchmark"]
+DEFAULT_CHECKS = ["history", "benchmark", "counterparty", "amendment", "timeline"]
 INVEST_TOOLS = ["peer_baseline", "history_all_categories"]   # the model picks a NAME from this list; code supplies the arguments
 SEVERITIES = ("info", "check", "signal")
 KINDS = ("deadline", "eligibility", "price", "buyer_history", "data_quality", "other")
@@ -48,6 +48,9 @@ class State(TypedDict, total=False):
     hcat: str | None
     hbroad: bool
     bench: dict | None
+    cpq: dict | None
+    amendment: dict | None
+    timeline: dict | None
     window: dict | None
     peers: dict | None
     wide: dict | None
@@ -169,7 +172,7 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
         cat = n["notice"].get("category")
         h = await call("buyer_award_history", buyer=key, **({"category": cat} if cat else {}))
         broadened = False
-        if cat and (not h.get("found") or h["n_awards"] < THIN_HISTORY):  # recovery: thin in-category history
+        if cat and (not h.get("found") or h["n_awards"] < tools.THIN_HISTORY):  # recovery: thin in-category history
             wide = await call("buyer_award_history", buyer=key)
             if wide.get("found") and wide["n_awards"] > (h.get("n_awards") or 0):
                 emit("history_broadened", reason="thin in-category history; used all categories")
@@ -197,6 +200,49 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
         b = await call("price_benchmark", category=cat, amount=amount,
                        currency=n.get("currency") or "KES", exclude_ocid=s["ocid"])
         return {"bench": b, "notes": notes}
+
+    async def counterparty(s: State):
+        """Pre-trade style check: verify buyer data quality before proceeding with analysis."""
+        if "counterparty" not in s["plan"]:
+            return {"cpq": None}
+        n, notes = s["notice"], list(s["notes"])
+        buyer_id = n.get("buyer_id")
+        buyer_name = n["notice"].get("buyer_name")
+        cpq = await call("counterparty_quality", buyer_id=buyer_id, buyer_name=buyer_name)
+        if not cpq.get("ready"):
+            notes.append(f"Counterparty data quality check: {'; '.join(cpq.get('issues', []))}")
+            emit("counterparty_check_failed", issues=cpq.get("issues", []))
+        else:
+            emit("counterparty_check_passed")
+        return {"cpq": cpq, "notes": notes}
+
+    async def amendment(s: State):
+        """Check for proper amendment handling (new releases vs overwrites)."""
+        if "amendment" not in s["plan"]:
+            return {"amendment": None}
+        notes = list(s["notes"])
+        amendment = await call("amendment_check", ocid=s["ocid"])
+        if amendment.get("has_amendments"):
+            for issue in amendment.get("issues", []):
+                notes.append(f"Amendment check: {issue}")
+            emit("amendment_detected", issues=amendment.get("issues", []))
+        else:
+            emit("amendment_ok")
+        return {"amendment": amendment, "notes": notes}
+
+    async def timeline(s: State):
+        """Check for process timeline anomalies (decision window from deadline to award)."""
+        if "timeline" not in s["plan"]:
+            return {"timeline": None}
+        notes = list(s["notes"])
+        timeline = await call("process_timeline_check", ocid=s["ocid"])
+        if timeline.get("issues"):
+            for issue in timeline.get("issues", []):
+                notes.append(f"Timeline check: {issue}")
+            emit("timeline_anomaly", issues=timeline.get("issues", []), decision_window_days=timeline.get("decision_window_days"))
+        else:
+            emit("timeline_ok", decision_window_days=timeline.get("decision_window_days"))
+        return {"timeline": timeline, "notes": notes}
 
     async def window(s: State):
         """Always runs (cheap, deterministic): how long was the tender open, against comparable tenders."""
@@ -270,7 +316,8 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
 
     async def evidence_node(s: State):
         items = ev.build_evidence(s["notice"], s.get("history"), s.get("bench"), s["notes"], s.get("docs"),
-                                  s.get("peers"), s.get("wide"), s.get("window"))
+                                  s.get("peers"), s.get("wide"), s.get("window"), s.get("cpq"), s.get("amendment"),
+                                  s.get("timeline"))
         emit("evidence_built", n=len(items), kinds=sorted({e["kind"] for e in items}))
         return {"evidence": items}
 
@@ -371,7 +418,7 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
 
         roles: dict[str, str] = {}
         for key, role in (("notice", "notice"), ("history", "history"), ("bench", "benchmark"),
-                          ("window", "window"), ("peers", "peers"), ("wide", "history_wide")):
+                          ("cpq", "counterparty"), ("amendment", "amendment"), ("window", "window"), ("peers", "peers"), ("wide", "history_wide")):
             if s.get(key):
                 roles.setdefault(prov.sha(s[key]), role)
         provenance = {
@@ -401,7 +448,7 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
 
     g = StateGraph(State)
     for name, fn in [("intake", intake), ("plan", plan), ("notice", notice), ("history", history),
-                     ("benchmark", benchmark), ("window", window), ("documents", documents),
+                     ("benchmark", benchmark), ("counterparty", counterparty), ("amendment", amendment), ("timeline", timeline), ("window", window), ("documents", documents),
                      ("investigate", investigate), ("evidence", evidence_node),
                      ("synthesize", synthesize), ("verify", verify), ("file", file_node)]:
         g.add_node(name, fn)
@@ -409,8 +456,8 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
     g.add_conditional_edges("intake", lambda s: END if s.get("status") == "refused" else "plan")
     g.add_edge("plan", "notice")
     g.add_conditional_edges("notice", lambda s: END if s.get("status") in ("not_found", "tool_error", "refused_live") else "history")
-    for a, b in [("history", "benchmark"), ("benchmark", "window"), ("window", "documents"), ("documents", "investigate"),
-                 ("investigate", "evidence"), ("evidence", "synthesize"), ("synthesize", "verify")]:
+    for a, b in [("history", "benchmark"), ("benchmark", "counterparty"), ("counterparty", "amendment"), ("amendment", "timeline"), ("timeline", "window"), ("window", "documents"),
+                 ("documents", "investigate"), ("investigate", "evidence"), ("evidence", "synthesize"), ("synthesize", "verify")]:
         g.add_edge(a, b)
     g.add_conditional_edges("verify", after_verify, {"synthesize": "synthesize", "file": "file"})
     g.add_edge("file", END)

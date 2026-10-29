@@ -17,7 +17,8 @@ MAX_REF = 200                      # longest accepted source_ocid / field_path (
 PATH_OK = re.compile(r"^(tender|buyer|awards\[\])(\.[A-Za-z]+(\[\])?)*\Z")
 PATH_COLUMN = {"tender.tenderPeriod.endDate": "deadline", "tender.tenderPeriod.startDate": "start", "tender.eligibilityCriteria": "eligibility",
                "tender.value.amount": "value", "tender.procurementMethod": "method", "tender.mainProcurementCategory": "category",
-               "buyer.name": "buyer_name", "buyer.id": "buyer_id", "tender.title": "title", "tender.description": "description"}
+               "buyer.name": "buyer_name", "buyer.id": "buyer_id", "tender.buyer_id": "buyer_id", "tender.buyer_name": "buyer_name",
+               "tender.title": "title", "tender.description": "description"}
 
 
 def _award_column(path: str) -> str:

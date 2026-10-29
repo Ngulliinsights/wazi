@@ -7,7 +7,8 @@ from concurrent.futures import ThreadPoolExecutor
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TESTS = ["tests/test_backend.py", "tests/test_review.py", "tests/test_stages.py", "tests/test_live_policy.py", "tests/test_packaging.py", "tests/test_joint_ventures.py", "tests/test_windows.py", "tests/test_defensible.py", "tests/test_freetier.py",   # fast + most discriminating first
          "tests/test_ollama_native.py", "tests/test_resilience.py", "tests/test_investigate.py", "tests/test_brief.py", "tests/test_personas.py",
-         "tests/test_bughunt.py", "tests/test_evals_quota.py", "tests/test_api.py", "tests/test_agent.py", "tests/test_fetch_mcp.py", "tests/test_mcp_contract.py"]
+         "tests/test_bughunt.py", "tests/test_evals_quota.py", "tests/test_api.py", "tests/test_agent.py", "tests/test_fetch_mcp.py", "tests/test_mcp_contract.py",
+         "tests/test_counterparty.py", "tests/test_validation.py", "tests/test_amendment.py", "tests/test_lifecycle.py"]
 M = [  # (file, original, mutant, what it breaks)
  ("bidbox/gate.py", "or n.casefold() in AGENT_NAMES", "or False", "agent names accepted as approvers"),
  ("bidbox/gate.py", "len(n) < 3", "len(n) < 0", "empty/short approver accepted"),
@@ -20,17 +21,24 @@ M = [  # (file, original, mutant, what it breaks)
  ("bidbox/tools.py", "abs(rz) <= 2", "abs(rz) <= 200", "price position always within range"),
  ("bidbox/tools.py", "dl >= _now(as_of)", "dl <= _now(as_of)", "deadline status inverted"),
  ("bidbox/tools.py", '"open" if', '"closed" if', "deadline label swapped"),
+ ("bidbox/tools.py", "if award_count < THIN_HISTORY:", "if False:", "counterparty thin history not flagged"),
+ ("bidbox/tools.py", "len(issues) == 0", "True", "counterparty issues ignored"),
+ ("bidbox/tools.py", "len(issues) > 0", "False", "amendments never detected"),
+ ("bidbox/tools.py", "days_open and days_open > 90", "False", "aged items never flagged"),
+ ("bidbox/validation.py", 'len(issues) == 0', "True", "validation issues ignored"),
+ ("bidbox/validation.py", '"no findings present"', '""', "empty findings allowed"),
 ]
 M += [tuple(x) for x in json.loads((ROOT / "scripts" / "mutants_agent.json").read_text())]
 T = lambda *n: [f"tests/test_{x}.py" for x in n]
 FOCUS = {  # tests most likely to catch a mutation in each file, tried FIRST. If they do not catch it, the FULL suite runs, so no mutant is
            # ever called a survivor (or caught) on thinner evidence than before; this only makes the common 'caught' case fast.
     "bidbox/gate.py": T("defensible", "bughunt", "backend"), "bidbox/findings.py": T("defensible", "backend", "bughunt", "brief"),
-    "bidbox/tools.py": T("backend", "live_policy", "joint_ventures", "windows", "defensible", "brief"), "bidbox/textsafe.py": T("bughunt"),
+    "bidbox/tools.py": T("backend", "live_policy", "joint_ventures", "windows", "defensible", "brief", "counterparty", "amendment", "lifecycle"), "bidbox/textsafe.py": T("bughunt"),
     "bidbox/provenance.py": T("defensible"), "bidbox/audit_log.py": T("bughunt"), "bidbox/store.py": T("stages", "resilience", "windows", "defensible", "live_policy"),
     "bidbox/api.py": T("api", "live_policy", "bughunt", "freetier", "defensible"), "bidbox/policy.py": T("live_policy"), "bidbox/review.py": T("review"), "bidbox/evals.py": T("evals_quota"),
     "bidbox/agent/llm.py": T("freetier", "ollama_native", "resilience"), "bidbox/agent/evidence.py": T("bughunt", "resilience", "agent", "investigate", "windows"),
-    "bidbox/agent/graph.py": T("live_policy", "agent", "investigate", "resilience", "freetier", "bughunt", "mcp_contract"), "bidbox/agent/fetcher.py": T("bughunt", "fetch_mcp")}
+    "bidbox/agent/graph.py": T("live_policy", "agent", "investigate", "resilience", "freetier", "bughunt", "mcp_contract"), "bidbox/agent/fetcher.py": T("bughunt", "fetch_mcp"),
+    "bidbox/validation.py": T("validation")}
 SKIP_DIRS = shutil.ignore_patterns("var", ".venv", "__pycache__", ".pytest_cache", "*.zip", "*.mutbak")
 ENV = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
 

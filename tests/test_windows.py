@@ -24,6 +24,7 @@ def data():
     c = connect(); load_ocds(SAMPLE, c); load_ocds(f, c)
 
 
+_db_cache = {"sql": None}
 def _db(monkeypatch, rows):
     """rows: (ocid, window_days or None, method, category). End date fixed; days<0 means start after the deadline."""
     from datetime import datetime, timedelta
@@ -32,7 +33,14 @@ def _db(monkeypatch, rows):
     for oc, d, m, c in rows:
         start = None if d is None else (end - timedelta(days=d)).strftime("%Y-%m-%dT%H:%M:%SZ")
         conn.execute("INSERT INTO tenders(ocid,method,category,deadline,start) VALUES(?,?,?,?,?)", (oc, m, c, END, start))
-    monkeypatch.setattr(tools, "connect", lambda: conn)
+    # Save SQL to replay
+    _db_cache["sql"] = "\n".join(conn.iterdump())
+    conn.close()
+    # Return a function that creates a fresh connection with the data
+    def rebuild():
+        c = sqlite3.connect(":memory:"); c.row_factory = sqlite3.Row; c.executescript(_db_cache["sql"])
+        return c
+    monkeypatch.setattr(tools, "connect", rebuild)
 
 
 def _scene(monkeypatch, target_days, extra=()):

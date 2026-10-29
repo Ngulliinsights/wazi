@@ -32,15 +32,26 @@ def sevs(r): return [f["severity"] for f in r["findings"]]
 
 
 # ---------- peer_baseline thresholds (hand-built fixtures, n=25 awards per buyer)
+_db_cache = {"sql": None}
 def _buyers(monkeypatch, shares, n=25, category="c"):
     conn = sqlite3.connect(":memory:"); conn.row_factory = sqlite3.Row; conn.executescript(store.SCHEMA)
+    sql_statements = []
     for b, share in shares.items():
         top = round(share * n)
         for k in range(n):
             oc = f"{b}-{k}"
             conn.execute("INSERT INTO tenders(ocid,category,buyer_id,buyer_name) VALUES(?,?,?,?)", (oc, category, b, b))
             conn.execute("INSERT INTO awards VALUES(?,?,?,?,?,?,?)", (oc, "a", f"{b}-top" if k < top else f"{b}-o{k}", None, 1.0, "KES", None))
-    monkeypatch.setattr(tools, "connect", lambda: conn)
+    # Save all SQL as strings to replay
+    for line in conn.iterdump():
+        sql_statements.append(line)
+    _db_cache["sql"] = "\n".join(sql_statements)
+    conn.close()
+    # Return a function that creates a fresh connection with the data
+    def rebuild():
+        c = sqlite3.connect(":memory:"); c.row_factory = sqlite3.Row; c.executescript(_db_cache["sql"])
+        return c
+    monkeypatch.setattr(tools, "connect", rebuild)
 
 
 PEERS = {"p1": .28, "p2": .28, "p3": .40, "p4": .48, "p5": .56}   # sorted: median .40, p75 .48

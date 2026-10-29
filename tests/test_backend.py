@@ -101,7 +101,7 @@ def test_file_brief_with_no_sourced_findings_files_nothing():
 def test_agent_has_no_award_or_approve_tool():
     from bidbox.server import mcp
     names = {t.name for t in asyncio.run(mcp.list_tools())}
-    assert names == {"get_tender_notice", "buyer_award_history", "price_benchmark", "peer_baseline", "window_baseline", "file_brief"}
+    assert names == {"get_tender_notice", "buyer_award_history", "price_benchmark", "peer_baseline", "window_baseline", "counterparty_quality", "amendment_check", "aged_items_check", "budget_exposure", "ppada_date_order_check", "single_bidder_check", "termination_check", "publication_quality_check", "process_timeline_check", "file_brief"}
 
 
 def test_every_call_is_logged_with_inputs_outputs_timestamps():

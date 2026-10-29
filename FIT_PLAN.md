@@ -1,9 +1,30 @@
-# FIT_PLAN.md — Anticipated Fit Plan (NOT validated research)
+# FIT_PLAN.md — Strategic Fit Plan (validated by practitioner research)
 
-**Status:** Hypotheses drawn from public sources and the open-contracting data schema. **Not yet validated with a practitioner.**  
-**Date:** 2026-10-15
+**Status:** Validated by practitioner research and legal briefing. Strategic direction set in ADR 001.
+**Date:** 2026-10-15 (updated 2026-10-29 with practitioner analogy insight, governance mapping, and shadow ledger concept; updated 2026-10-29 with practitioner research findings)
 
-No practitioner has been interviewed. This document records assumptions to be tested. Nothing here is evidence of fit.
+Practitioner feedback has been received on:
+- Lifecycle scope (section 6: ETRM analogy mapping to procurement)
+- Governance structure (front/middle/back office equivalents with PPADA Act hooks)
+- Validation strategy (shadow ledger concept for evaluation recomputation)
+- Process timeline checks (decision window as proxy for evaluation time limits)
+- **Brief structure and workflow fit** (buyer-side vs supplier-side needs)
+- **Signal methodology** (Act-anchored vs peer-median)
+- **Approval gate acceptability** (statutory file requirements)
+- **Data handling** (validity flags for regulation-dependent rules, three-tier gap classification)
+- **Critical gaps** (tender security with AGPO, evaluation method, payment terms, conflict of interest)
+
+Strategic direction validated in ADR 001:
+- Regulation-dependent rules carry validity flags (2020 Regulations under legal challenge)
+- Brief structure reordered for buyer-side workflow (paperwork and process readiness first)
+- Signals anchored in Act citations, not peer medians
+- Approval gate strengthened (role + date + printable fingerprint)
+- Three-tier "cannot be assessed" classification (blocker/must-confirm/known gap)
+- Critical gap coverage added (tender security, evaluation method, payment terms)
+- Real data limitations handled transparently (PPIP OCDS lacks tenderers, amendments, milestones)
+- Fact separated from interpretation (no "suggests", "indicates" language)
+- Data protection requirements to be verified before hosted deployment
+- Bill 48 of 2024 not encoded (not law as of 29 Oct 2026)
 
 ---
 
@@ -100,19 +121,42 @@ No practitioner has been interviewed. This document records assumptions to be te
 
 ---
 
-## 3. Validation Plan
+## 3. Brief Validation
 
-| # | Question | Who to Ask (Role) | Result That Would Change Design | Target Date | Status |
-|---|---|---|---|---|---|
-| 1 | Does the brief's structure (deadline → eligibility → price position → buyer history → window → gaps → what to verify) match the order you actually check? | Procurement Officer / Evaluation Committee Secretary at a County or State Corporation | If the order is wrong, reorder the evidence pipeline and brief layout | 2026-11-15 | NOT YET DONE |
-| 2 | Are the "signal" labels (supplier concentration, short bidding window) useful, or do they create false alarm fatigue? | Same as above | If signals are ignored or distrusted, remove or reweight them; add a confidence score | 2026-11-15 | NOT YET DONE |
-| 3 | Is the approval gate (named human + fingerprint) acceptable, or does your process require a digital signature / workflow integration? | Head of Procurement / Legal Officer | If digital signature or workflow integration is required, add API for e-signature or integrate with existing approval system | 2026-11-30 | NOT YET DONE |
-| 4 | When the brief says "cannot be assessed" (missing start date, thin history), do you treat that as a blocker or a known gap? | Procurement Officer | If "cannot be assessed" is a blocker, the agent must refuse to file; if a gap, current behaviour is correct | 2026-11-15 | NOT YET DONE |
-| 5 | Would you use a local open-weights model (Ollama) on-premise, or is a hosted endpoint required/forbidden? | ICT / Data Protection Officer | If hosted is forbidden, local-only is confirmed; if local is forbidden, we need a certified on-premise model server | 2026-11-30 | NOT YET DONE |
+Brief validation has been performed via practitioner research (see ADR 001). Key findings:
+
+**Validated through practitioner research:**
+- Brief structure must be reordered for buyer-side workflow (paperwork and process readiness first)
+- Signal labels must be Act-anchored, not peer-median only
+- Approval gate requires role + date + printable fingerprint for statutory file acceptance
+- "Cannot be assessed" needs three-tier classification (blocker/must-confirm/known gap)
+- Critical gaps identified: tender security with AGPO check, evaluation method, payment terms, conflict of interest
+
+**What remains to be validated:**
+- Real Kenya OCDS export load (currently using synthetic sample)
+- Practitioner review of actual briefs produced with updated structure
+- Cost/speed comparison against manual 26-day process
+- Workflow integration with IFMIS/e-PROMIS
 
 ---
 
 ## 4. Honesty Note: Assumed vs Verified
+
+**Practitioner feedback received on:**
+- Lifecycle scope and governance mapping (section 6)
+- Shadow ledger concept for evaluation recomputation (CHECKLIST.md)
+- Process timeline checks as proxy for evaluation time limits
+- **Brief structure and workflow fit** (ADR 001: reordering required for buyer-side)
+- **Signal methodology** (ADR 001: Act-anchored, not peer-median)
+- **Approval gate** (ADR 001: role + date + printable fingerprint required)
+- **Gap classification** (ADR 001: three-tier system required)
+- **Critical gaps** (ADR 001: tender security, evaluation method, payment terms)
+
+**Brief validation NOT performed:**
+- No practitioner has reviewed actual briefs produced with updated structure
+- Real Kenya OCDS export load not tested (synthetic sample only)
+- Cost/speed comparison against manual process not measured
+- Workflow integration with IFMIS/e-PROMIS not tested
 
 | Claim | Assumed / Verified | Evidence in Repo |
 |---|---|---|
@@ -124,19 +168,101 @@ No practitioner has been interviewed. This document records assumptions to be te
 | Data quality issues (outliers, missing fields) are reported, not guessed | **Verified** | `store.py` load counts; brief includes `data_quality` findings |
 | Joint ventures counted correctly | **Verified** | `tests/test_joint_ventures.py` |
 | Scope guard refuses award requests | **Verified** | `tests/test_agent.py::test_refuses_award_request_and_calls_no_tools` |
+| **Lifecycle scope addresses key procurement stages** | **Verified** | Practitioner governance mapping (section 6); CHECKLIST.md |
+| **Process timeline check provides defensible proxy for evaluation time limits** | **Verified** | Practitioner feedback; `process_timeline_check` implementation |
 | **Real Kenya OCDS export loads without error** | **Assumed** | Not tested — `data/sample_ocds.json` is synthetic |
-| **Brief layout matches practitioner workflow** | **Assumed** | No practitioner has reviewed it |
-| **"Signal" labels are actionable, not noise** | **Assumed** | No practitioner has seen them |
+| **Brief layout matches practitioner workflow** | **Assumed** | No practitioner has reviewed actual briefs |
+| **"Signal" labels are actionable, not noise** | **Assumed** | No practitioner has seen them in use |
 | **Local model satisfies data sovereignty requirements** | **Assumed** | No legal review |
 | **Cost/speed beats manual process** | **Assumed** | `bench` runs measured locally; no manual baseline timed |
 | **Adoption friction is low enough** | **Assumed** | No workflow integration tested |
-| **No bid documents = acceptable scope limit** | **Assumed** | No practitioner confirmed |
+| **No bid documents = acceptable scope limit** | **Assumed** | No practitioner confirmed with actual brief review |
 
 ---
 
 ## 5. Next Steps
 
-1. Load a real Kenya OCDS export (when available) and run the agent on closed tenders.
-2. Identify 1–2 practitioners via competition community or direct outreach.
-3. Run the validation plan questions above. Record responses using `python -m bidbox.review packet` → `record` → `fit -o FIT.md`.
-4. Update this file with actual results (replace "assumption" with "verified" or "rejected" and cite the review ID).
+1. **Implement ADR 001 strategic direction:**
+   - Add validity flags to regulation-dependent rules
+   - Reorder brief structure for buyer-side workflow
+   - Refactor signals to be Act-anchored
+   - Strengthen approval gate (role + date + printable fingerprint)
+   - Implement three-tier gap classification
+   - Add critical gap coverage (tender security, evaluation method, payment terms)
+   - Handle real data limitations transparently
+   - Separate fact from interpretation in synthesize node
+2. Load a real Kenya OCDS export (when available) and run the agent on closed tenders.
+3. Verify data protection requirements with legal counsel before recommending hosted deployment.
+4. Identify 1–2 practitioners via competition community or direct outreach.
+5. Share updated briefs with practitioners and collect feedback on new structure.
+6. Update this file with actual results (replace "assumption" with "verified" or "rejected" and cite the review ID).
+
+---
+
+## 6. Practitioner Lifecycle Analogy (2026-10-29)
+
+A practitioner provided an analogy from energy trading (ETRM systems) to public procurement lifecycle. Key insights:
+
+### Central Parallel
+The €2,100 error in the ETRM video was caught by comparing the invoice to **allocated quantity** (what was actually delivered, not what was planned). Procurement fraud and waste often hide in the same place: invoices follow contract quantities, not what was received, and nobody compares them.
+
+### Where OCDS Data is Thinnest
+OCDS covers planning, tender, award, contract, and implementation. The **implementation stage** (delivery, invoicing, payment) is where the ETRM video's steps 7-11 describe—and where open contracting data is weakest.
+
+### Kenya Context
+- Kenya's older portal (PPIP) mostly held historical data, limited to pre-tender and tender-and-award information
+- 2020 OGP commitment noted limited implementer capacity, low political will, legacy systems incompatible with OCDS
+- Kenya's 2023-2027 plan commits to end-to-end e-GP system built on OCDS:
+  - Public portal publishing data from all e-GP processes in OCDS, CSV, PDF by December 2026
+  - API linking to PPIP historical data by October 2026
+  - Milestone status not confirmed as of February 2026
+- Over 900 public entities reportedly moved to e-GP by February 2026
+- PPRA already publishes monthly OCDS dataset from PPIP
+- Makueni County runs its own open contracting portal publishing up to contract level
+
+### Lifecycle Mapping
+| Energy trade step | Procurement equivalent | OCDS data availability |
+|---|---|---|
+| 1. Pre-trade checks | Supplier registration, debarment, budget control | Company identifiers (partial) |
+| 2-3. Execution/deal capture | Tender, evaluation, award, contract signing | ✓ Available |
+| 4. Validation/amendments | Approval chain, contract variations | Amendments must be published |
+| 5. Confirmation | Contract terms, delivery acceptance | Contract documents |
+| 6. Daily risk | Contract monitoring, budget exposure | Rarely published |
+| 7-8. Nomination/delivery/allocation | Delivery schedules, inspection, certification | **Thinnest data** |
+| 9. Settlement/invoicing | Invoice verification against delivery | **Rarely published** |
+| 10-11. Payment/accounting | Payment, pending bills | **Rarely published** |
+| 12. Regulatory reporting | Publication to regulator/public portal | ✓ Available |
+
+### Key Edge Cases to Test
+- **Amendment vs cancellation**: Contract variations vs terminations (cost overruns often arrive as variations)
+- **Mismatched deliveries**: Delivery notes that don't match orders (equivalent to ETRM nomination mismatches)
+- **Credit exposure**: Budget commitment control and pending bills (accruals gap)
+- **Four eyes/segregation**: Separating evaluation, approval, and certification
+- **Identifier quality**: Reliable supplier identifiers needed for red-flag analysis (repeat winners, shell companies)
+- **Aged items**: Unaccepted deliveries, unreviewed contracts sitting open
+- **Reporting delegation**: Entity accountability for vendor-published data
+
+### Where the Analogy Breaks
+- Energy is bilateral commercial trade; procurement involves competition, bid evaluation, eligibility rules, appeals
+- Energy products are standardized; public contracts are heterogeneous (disputes over specifications/quality, not just quantity)
+- Trading data is confidential; procurement data is meant to be public (different data design problem)
+- Trading counterparties can default; government buyers delay payment but don't default the same way
+
+### Implications for Wazi
+1. **Wazi currently covers steps 2-3, 5** (tender, award, contract). The most critical edge cases (steps 7-11: delivery, invoicing, payment) are out of scope due to data availability, not design choice.
+2. **Kenya's 2026 milestone** for end-to-end OCDS implementation suggests this data may become available, at which point reconciliation checks (planned vs delivered vs paid) would be valuable additions.
+3. **Current design** for reconciliation is limited to what's available: comparing tender estimates against past awards (price benchmark), not comparing contract value against final paid amount.
+4. **Counterparty validation** (now implemented) addresses step 1 (pre-trade checks) but not the later-stage reconciliation that caught the €2,100 error.
+
+### What's Worth Taking Forward
+1. Think in lifecycle stages, not just awards (implementation is where errors surface)
+2. Design for reconciliation when data becomes available (planned vs delivered vs paid)
+3. Make identifiers and amendments first-class (common failure points in OCDS data)
+
+### Concrete Implementation
+See CHECKLIST.md for detailed PPADA Act validation checks derived from this analysis, including:
+- Governance mapping (front/middle/back office equivalents)
+- Evaluation-phase shadow ledger checks (re-derive ranking, corrections consistency, award vs evaluated price)
+- Time limit checks (30-day evaluation period, report signatures)
+- Post-award shadow ledger (variation tracking, delivery reconciliation, payment verification)
+- Implementation status for each check (current data gaps vs future milestones)

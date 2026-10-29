@@ -9,13 +9,13 @@ It never awards a tender and cannot approve its own filings.
 - **Primary:** Procurement managers (buyer side) who sign off tenders — need a health check of their own tender
 - **Secondary:** Small suppliers' supply chain managers — need to verify tender details before bidding
 
-**Status:** Backend + agent core built (own MCP server, borrowed Fetch MCP server, store, audit log, approval gate, LangGraph agent, 375 tests, 104-mutant check, eval harness, API + one-page UI, submission preflight).
-**Not built yet:** Real Kenya data load (the real feed may omit start dates: untested), EVALS.md/ARCHITECTURE.md/DESCRIPTION.md (written from real-model runs).
+**Status:** Backend + agent core built (own MCP server, borrowed Fetch MCP server, store, audit log, approval gate, LangGraph agent, 375 tests, 104-mutant check, eval harness, API + one-page UI, submission preflight). Strategic direction validated in ADR 001 based on practitioner research.
+**Not built yet:** Real Kenya data load (the real feed may omit start dates: untested), validity flags for regulation-dependent rules, three-tier gap classification, strengthened approval gate (role + date + printable fingerprint), Act-anchored signal refactoring, critical gap coverage (tender security, evaluation method, payment terms).
 **Not yet tested:** The live open-weights path (`OllamaLLM`) against all eval cases. All agent tests use a deterministic `StubLLM` (not a model; results are flagged `llm: stub`). Run against a real local model before trusting any behaviour claim.
 **Data:** Currently a SYNTHETIC sample (`data/sample_ocds.json`). Swap in a real OCDS export with `python -m bidbox.cli load <file>`.
 **Data half:** Built on tender, award and price history. Bid documents are not published by the portals, so no bid evaluation.
 
-**Scope and limits:** Wazi covers the pre-evaluation readiness slice of the procurement lifecycle (approximately one-quarter to one-third of the full cycle). It addresses market analysis (price benchmarking against past awards), tender notice quality (completeness checks), and buyer award history (supplier concentration signals). It does NOT cover needs identification, sourcing strategy, bid evaluation, award decision, contract management, or post-award review. Legal compliance checks (PPADA minimum tender periods, thresholds, AGPO preference schemes, conflict of interest) are intentionally out of scope. The brief structure and "signal" labels have not been validated with a procurement practitioner; this is synthetic data only.
+**Scope and limits:** Wazi covers the pre-evaluation readiness slice of the procurement lifecycle (approximately one-quarter to one-third of the full cycle). It addresses market analysis (price benchmarking against past awards), tender notice quality (completeness checks), and buyer award history (supplier concentration signals). It does NOT cover needs identification, sourcing strategy, bid evaluation, award decision, contract management, or post-award review. Legal compliance checks (PPADA minimum tender periods, thresholds, AGPO preference schemes, conflict of interest) are intentionally out of scope. Strategic direction validated in ADR 001 based on practitioner research and legal briefing.
 
 **How it fits with existing systems:** Wazi works on public award and tender data and sits before evaluation. It does not evaluate bids, because portals publish notices and awards but not bid documents. How it fits alongside the portals and finance systems offices already use has not been validated with a practitioner.
 **One command (recommended):**
@@ -73,6 +73,18 @@ python -m bidbox.agent ocds-synth-0001 --as-of 2026-01-01
 ## Architecture
 See [ARCHITECTURE.md](ARCHITECTURE.md) for a one-page architecture diagram and design decisions.
 
+## Strategic Direction
+See [ADR_001_practitioner_findings.md](ADR_001_practitioner_findings.md) for the strategic direction validated by practitioner research and legal briefing. Key changes:
+- Regulation-dependent rules carry validity flags (2020 Regulations under legal challenge)
+- Brief structure reordered for buyer-side workflow
+- Signals anchored in Act citations, not peer medians
+- Approval gate strengthened (role + date + printable fingerprint)
+- Three-tier "cannot be assessed" classification
+- Critical gap coverage added (tender security, evaluation method, payment terms)
+- Real data limitations handled transparently
+- Fact separated from interpretation
+- Data protection requirements to be verified before hosted deployment
+
 ## Technology Stack
 - **Language:** Python 3.11+
 - **Orchestration:** LangGraph (open-source)
@@ -86,24 +98,31 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for a one-page architecture diagram and d
 ## Agent Architecture
 The agent is a LangGraph state machine with explicit nodes:
 1. **Intake** — Scope guard (refuses award/legal requests)
-2. **Plan** — Model chooses optional checks (history, benchmark)
-3. **Notice** — `get_tender_notice` tool
-4. **History** — `buyer_award_history` (buyer-id fallback, broadens if thin)
-5. **Benchmark** — `price_benchmark` (skips if category/value missing)
-6. **Window** — `window_baseline` (peer comparison of bidding window)
-7. **Documents** — Borrowed `fetch` server for tender document links
-8. **Investigate** (loop mode only) — Model chooses allowed check from allowlist when data raises a signal
-9. **Evidence** — Built by code from tool outputs
-10. **Synthesize** — Model writes findings citing evidence
-11. **Verify** — Code checks: every finding cites evidence, every number appears in evidence, no verdict language (max 2 attempts, then template fallback)
-12. **File Brief** — `file_brief` tool queues for human approval (replay-checked)
-13. **Stop** — Named human must approve exact brief fingerprint
+2. **Plan** — Model chooses optional checks (history, benchmark, counterparty, amendment, timeline, ppada)
+3. **See below** - Kenya-specific PPADA Act checks are conditionally included
+4. **Notice** — `get_tender_notice` tool
+5. **History** — `buyer_award_history` (buyer-id fallback, broadens if thin)
+6. **Benchmark** — `price_benchmark` (skips if category/value missing)
+7. **Counterparty** — `counterparty_quality` (buyer data validation)
+8. **Amendment** — `amendment_check` (detects proper amendment handling vs overwrites)
+9. **Timeline** — `process_timeline_check` (decision window from deadline to award, flags process delays)
+10. **PPADA Date Order** — `ppada_date_order_check` (validates tender→award order, flags missing contract signing date)
+11. **Single Bidder** — `single_bidder_check` (flags single-bidder tenders per PPADA)
+12. **Termination** — `termination_check` (flags terminated status, reason/date data gap)
+13. **Window** — `window_baseline` (peer comparison of bidding window)
+14. **Documents** — Borrowed `fetch` server for tender document links
+15. **Investigate** (loop mode only) — Model chooses allowed check from allowlist when data raises a signal
+16. **Evidence** — Built by code from tool outputs
+17. **Synthesize** — Model writes findings citing evidence
+18. **Verify** — Code checks: every finding cites evidence, every number appears in evidence, no verdict language (max 2 attempts, then template fallback)
+19. **File Brief** — `file_brief` tool queues for human approval (replay-checked)
+20. **Stop** — Named human must approve exact brief fingerprint
 
 The model never calls tools, never sees raw tool output as truth, cannot approve, and cannot raise a signal the data did not raise.
 
 ## MCP Implementation
 ### Built Server (`bidbox.server`)
-5 tools over normalized SQLite store:
+14 tools over normalized SQLite store:
 | Tool | Type | Purpose |
 |---|---|---|
 | `get_tender_notice` | read | Notice fields, deadline status (replayable via `as_of`), unknowns listed |
@@ -111,6 +130,15 @@ The model never calls tools, never sees raw tool output as truth, cannot approve
 | `price_benchmark` | read | Median/MAD benchmark, extreme outliers surfaced not hidden |
 | `peer_baseline` | read | Tests concentration signal against comparable buyers |
 | `window_baseline` | read | Bidding window vs comparable tenders (same method/category) |
+| `counterparty_quality` | read | Buyer data validation (ID/name consistency, award history depth) |
+| `amendment_check` | read | Detects proper amendment handling (new releases vs overwrites) |
+| `aged_items_check` | read | Detects unusually long open tenders (aged items) |
+| `budget_exposure` | read | Estimates budget exposure based on award history (accruals gap proxy) |
+| `ppada_date_order_check` | read | PPADA Act date order validation (tender close → award) |
+| `single_bidder_check` | read | Single-bidder detection (special procedures required) |
+| `termination_check` | read | Termination checks (reason/date data gap warning) |
+| `publication_quality_check` | read | Publication quality checks (missing fields per stage) |
+| `process_timeline_check` | read | Process timeline anomalies (decision window from deadline to award) |
 | `file_brief` | act | Queues a sourced brief for human approval |
 
 ### Borrowed Server (`mcp-server-fetch`)
@@ -137,14 +165,23 @@ Two modes (`--mode pipeline|loop`, default loop), compared by `bidbox.evals` on 
 8. UI: One-page at `http://127.0.0.1:8000` with approve/reject buttons and verify button
 
 ## Future Improvements
+- **Implement ADR 001 strategic direction:**
+  - Add validity flags to regulation-dependent rules (2020 Regulations under legal challenge)
+  - Reorder brief structure for buyer-side workflow (paperwork and process readiness first)
+  - Refactor signals to be Act-anchored, not peer-median only
+  - Strengthen approval gate (role + date + printable fingerprint)
+  - Implement three-tier gap classification (blocker/must-confirm/known gap)
+  - Add critical gap coverage (tender security with AGPO check, evaluation method, payment terms)
+  - Handle real data limitations transparently (PPIP OCDS lacks tenderers, amendments, milestones)
+  - Separate fact from interpretation in synthesize node
 - Load real Kenya OCDS export and validate against actual portal data
 - Add intent classifier for scope guard (replace keyword-based)
-- Authenticate approvers (currently typed name, self-asserted)
 - Expand data half: bidder counts, bid security, payment behavior (not in OCDS awards)
-- Practitioner review of briefs (FIT.md generation via `python -m bidbox.review`)
+- Practitioner review of briefs produced with updated structure
 - Full EVALS.md from real-model runs across all eval tiers
 - Windows-native testing (developed on Linux)
 - Multi-language support for briefs
+- Post-award implementation checks (delivery reconciliation, invoice verification, payment tracking) — see DEFERRED.md for data-dependent roadmap tied to Kenya's Dec 2026 OCDS milestone
 
 ## Resilience (tested without a real model or the real portal)
 - **Model output:** `extract_json` copes with `<think>` blocks (Qwen3), code fences and prose around JSON; unusable output becomes `LLMError`, which the agent recovers from. The Ollama client is also tested over HTTP against a fake OpenAI-compatible server.

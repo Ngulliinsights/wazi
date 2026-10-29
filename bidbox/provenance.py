@@ -14,7 +14,9 @@ from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
-READ_TOOLS = ("get_tender_notice", "buyer_award_history", "price_benchmark", "peer_baseline", "window_baseline")
+READ_TOOLS = ("get_tender_notice", "buyer_award_history", "price_benchmark", "peer_baseline", "window_baseline",
+              "counterparty_quality", "amendment_check", "aged_items_check", "budget_exposure", "ppada_date_order_check",
+              "single_bidder_check", "termination_check", "publication_quality_check", "process_timeline_check")
 MAX_TEXT = 20000
 SCHEMA = 1
 
@@ -232,7 +234,8 @@ def verify_filing(fid: str) -> dict:
             if "notice" in by_role:
                 fresh = ev.build_evidence(by_role["notice"], by_role.get("history"), by_role.get("benchmark"),
                                           m.get("notes") or [], m.get("documents") or [], by_role.get("peers"),
-                                          by_role.get("history_wide"), by_role.get("window"))
+                                          by_role.get("history_wide"), by_role.get("window"), by_role.get("counterparty"),
+                                          by_role.get("amendment"), by_role.get("timeline"))
                 same = [_ev_key(e) for e in fresh] == [_ev_key(e) for e in m.get("evidence") or []]
                 add("evidence is exactly what the data and documents produce", same,
                     "" if same else "recorded evidence differs from re-derived evidence", "replay")

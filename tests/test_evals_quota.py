@@ -128,4 +128,4 @@ def test_evals_md_reports_an_incomplete_run_honestly(tmp_path):
 def test_cli_refuses_to_write_evals_md_from_the_stub(tmp_path):
     out = subprocess.run([sys.executable, "-m", "bidbox.evals", "--llm", "stub", "--modes", "loop", "--runs", "1", "--tier", "smoke", "--write-evals", str(tmp_path / "E.md")],
                          capture_output=True, text=True, cwd=ROOT)
-    assert out.returncode == 2 and "refusing to write EVALS.md" in out.stdout and not (tmp_path / "E.md").exists()
+    assert out.returncode == 2 and "refusing to write EVALS.md" in out.stderr and not (tmp_path / "E.md").exists()
