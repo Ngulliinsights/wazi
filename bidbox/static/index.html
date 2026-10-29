@@ -1,12 +1,15 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Bid Box: tender readiness briefs</title>
+<title>WAZI: tender readiness briefs</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="apple-touch-icon" href="/static/app-icon.svg">
+<link rel="manifest" href="/static/manifest.json">
 <style>
-:root{--bg:#f6f5f1;--fg:#1d2320;--mut:#5b655f;--card:#fff;--line:#d9d6cc;--acc:#1f6f55;--accbg:#e6f2ed;--warn:#8a5a00;--warnbg:#fbf3df;--bad:#9b2c2c}
-@media(prefers-color-scheme:dark){:root{--bg:#141816;--fg:#e8ece9;--mut:#9aa59f;--card:#1c211f;--line:#2e3532;--acc:#4fb890;--accbg:#1b2d27;--warn:#e0b04a;--warnbg:#2c2615;--bad:#e07a7a}}
+:root{--bg:#F6F5F1;--fg:#1D2320;--mut:#5B655F;--card:#fff;--line:#D9D6CC;--acc:#1F6F55;--accbg:#E6F2ED;--warn:#8A5A00;--warnbg:#FBF3DF;--info:#1E5A8A;--infobg:#E4EEF6;--bad:#9B2C2C}
+@media(prefers-color-scheme:dark){:root{--bg:#141816;--fg:#E8ECE9;--mut:#9AA59F;--card:#1C211F;--line:#2E3532;--acc:#4FB890;--accbg:#1B2D27;--warn:#E0B04A;--warnbg:#2C2615;--info:#7DB4E5;--infobg:#14202B;--bad:#E07A7A}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,sans-serif}
 .skip{position:absolute;left:-999px}.skip:focus{left:8px;top:8px;background:var(--card);padding:6px 10px;z-index:9}
-header{padding:14px 18px 4px}h1{font-size:20px;margin:0}header p{margin:2px 0 0;color:var(--mut);font-size:14px}
+header{padding:14px 18px 4px;display:flex;align-items:center;gap:14px}header .wordmark{width:160px;height:auto;flex-shrink:0}header .tagline{margin:0;color:var(--mut);font-size:14px;max-width:520px}
 .bar{display:flex;flex-wrap:wrap;gap:6px;padding:6px 18px}
 .pill{border:1px solid var(--line);border-radius:99px;padding:2px 10px;font-size:12.5px;color:var(--mut)}.pill.w{color:var(--warn);border-color:var(--warn);background:var(--warnbg)}
 .steps{display:flex;gap:6px;list-style:none;margin:6px 18px;padding:0;font-size:13px;color:var(--mut)}
@@ -26,7 +29,7 @@ fieldset{border:0;margin:0;padding:0}.seg{display:flex;gap:8px;align-items:flex-
 .sel{font-size:13.5px;margin:6px 0;padding:8px 10px;border-radius:8px;background:var(--bg);color:var(--mut)}.sel.live{background:var(--warnbg);color:var(--warn)}
 #trace div{padding:4px 0;border-bottom:1px dashed var(--line);font-size:13.5px}#trace .t{color:var(--mut)}#trace .bad{color:var(--bad)}#trace .ok{color:var(--acc)}
 #msg{font-size:14px;min-height:20px;margin-top:8px}.bad{color:var(--bad)}.ok{color:var(--acc)}
-#replaybar{background:var(--warnbg);color:var(--warn);border:1px solid var(--warn);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:14px}
+#replaybar{background:var(--infobg);color:var(--info);border:1px solid var(--info);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:14px}
 .legend{font-size:13px;color:var(--mut);margin:0 0 10px}
 #brief{overflow-x:auto}#brief table{border-collapse:collapse;width:100%;font-size:14.5px}#brief td{border:1px solid var(--line);padding:6px 8px}#brief td:first-child{color:var(--mut);width:34%}
 #brief h3{margin:18px 0 6px;font-size:16px}#brief blockquote{margin:8px 0;padding:6px 10px;border-left:3px solid var(--warn);color:var(--mut);font-size:13.5px}
@@ -38,7 +41,17 @@ fieldset{border:0;margin:0;padding:0}.seg{display:flex;gap:8px;align-items:flex-
 @media print{header,.bar,.steps,main>section:first-child,.tools,#gate{display:none}main{display:block;padding:0}.card{border:0}}
 </style></head><body>
 <a class="skip" href="#brief">Skip to the brief</a>
-<header><h1>Bid Box</h1><p>A sourced brief on a closed public tender. A person decides; the tool never awards, ranks or advises to bid.</p></header>
+<header>
+  <svg class="wordmark" viewBox="0 0 150 56" width="160" height="56" role="img" aria-label="WAZI" fill="none" stroke="var(--fg)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Wordmark: WAZI -->
+    <path d="M6 10L16 46L26 22L36 46L46 10"/>   <!-- W -->
+    <path d="M62 46L74 10L86 46"/>              <!-- A (open, no crossbar) -->
+    <path d="M100 10H124L100 46H124"/>          <!-- Z -->
+    <path d="M142 26V46"/>                      <!-- I stem -->
+    <circle cx="142" cy="12" r="6" fill="var(--acc)"/>  <!-- I dot (the source) - round, detached -->
+  </svg>
+  <p class="tagline">WAZI runs 14 checks on a closed tender and shows every source. A named person decides — the tool never awards, advises to bid, or issues a verdict.</p>
+</header>
 <div class="bar"><span class="pill w">DRAFT: not an award decision</span><span class="pill w" id="replay">Closed tenders and synthetic data only; live tenders are refused</span><span class="pill" id="llm"></span></div>
 <ol class="steps" aria-label="Progress"><li id="s1" class="cur">1 <span>Choose</span></li><li id="s2">2 <span>Prepare</span></li><li id="s3">3 <span>Review</span></li><li id="s4">4 <span>Decide</span></li></ol>
 <main>
@@ -59,7 +72,15 @@ fieldset{border:0;margin:0;padding:0}.seg{display:flex;gap:8px;align-items:flex-
 <section>
  <div class="card"><h2>3. Review the brief</h2><div id="replaybar" hidden></div>
   <p class="legend">Every statement cites its source. A signal means worth a look, never proof. This brief does not say whether to bid or whether a process was lawful.</p>
-  <div id="brief" tabindex="-1"><span class="t">Choose a tender and prepare a brief to see it here.</span></div>
+  <div id="brief" tabindex="-1">
+    <div class="empty-state" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;text-align:center;color:var(--mut);">
+      <svg viewBox="0 0 192 192" width="80" height="80" role="img" aria-hidden="true" fill="none" stroke="var(--line)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;opacity:0.5;">
+        <path d="M112 21H59A38 38 0 0 0 21 59V133A38 38 0 0 0 59 171H133A38 38 0 0 0 171 133V90"/>
+        <circle cx="142" cy="48" r="20" fill="var(--acc)"/>
+      </svg>
+      <p style="margin:0;font-size:15px;">Choose a tender and prepare a brief to see it here.</p>
+    </div>
+  </div>
   <div class="tools"><button id="print" class="ghost">Print or save as PDF</button><button id="copy" class="ghost">Copy fingerprint</button></div></div>
  <div class="card" id="gate" hidden><h2>4. Decide</h2>
   <p class="legend">Approving or rejecting records your name and this exact brief. It cannot award a tender.</p>

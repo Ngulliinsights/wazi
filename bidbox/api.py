@@ -14,6 +14,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import audit_log, gate, policy, provenance
@@ -21,7 +22,9 @@ from .agent import run_agent
 from .agent.llm import OllamaLLM, QuotaExhausted, StubLLM
 from .store import connect
 
-app = FastAPI(title="Bid Box")
+app = FastAPI(title="WAZI")
+
+app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 
 PAGE = Path(__file__).parent / "static" / "index.html"
 MODES = ("loop", "pipeline")
