@@ -30,8 +30,8 @@ def main():
     s.add_parser("pending")
     sh = s.add_parser("show"); sh.add_argument("filing_id")
     vf = s.add_parser("verify"); vf.add_argument("filing_id")
-    a = s.add_parser("approve"); a.add_argument("filing_id"); a.add_argument("--approver", required=True); a.add_argument("--sha256", required=True, help="fingerprint printed by `show`")
-    r = s.add_parser("reject"); r.add_argument("filing_id"); r.add_argument("--approver", required=True); r.add_argument("--reason", default=""); r.add_argument("--sha256", required=True)
+    a = s.add_parser("approve"); a.add_argument("filing_id"); a.add_argument("--approver", required=True); a.add_argument("--sha256", required=True, help="fingerprint printed by `show`"); a.add_argument("--role", choices=["Head of Procurement", "Accounting Officer", "Evaluation Committee Chair", "Evaluation Committee Member", "Procurement Officer"], help="Per ADR 001: approver role for statutory file acceptance"); a.add_argument("--date", help="Per ADR 001: approval date (YYYY-MM-DD)")
+    r = s.add_parser("reject"); r.add_argument("filing_id"); r.add_argument("--approver", required=True); r.add_argument("--reason", default=""); r.add_argument("--sha256", required=True); r.add_argument("--role", choices=["Head of Procurement", "Accounting Officer", "Evaluation Committee Chair", "Evaluation Committee Member", "Procurement Officer"], help="Per ADR 001: approver role for statutory file acceptance"); r.add_argument("--date", help="Per ADR 001: approval date (YYYY-MM-DD)")
     args = p.parse_args()
     try:
         _run(args)
@@ -56,9 +56,9 @@ def _run(args):
             print(("PASS  " if c["ok"] else "FAIL  ") + c["check"] + (f"   <- {c['detail']}" if c["detail"] and not c["ok"] else ""))
         print("\nVERDICT:", rep["verdict"])
     elif args.cmd == "approve":
-        print(json.dumps(gate.approve(args.filing_id, args.approver, args.sha256), indent=2))
+        print(json.dumps(gate.approve(args.filing_id, args.approver, args.sha256, args.role, args.date), indent=2))
     elif args.cmd == "reject":
-        print(json.dumps(gate.reject(args.filing_id, args.approver, args.reason, args.sha256), indent=2))
+        print(json.dumps(gate.reject(args.filing_id, args.approver, args.reason, args.sha256, args.role, args.date), indent=2))
 
 
 if __name__ == "__main__":

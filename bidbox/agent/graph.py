@@ -28,7 +28,10 @@ MAX_DOCS = 2
 DEFAULT_CHECKS = ["history", "benchmark", "counterparty", "amendment", "timeline"]
 INVEST_TOOLS = ["peer_baseline", "history_all_categories"]   # the model picks a NAME from this list; code supplies the arguments
 SEVERITIES = ("info", "check", "signal")
-KINDS = ("deadline", "eligibility", "price", "buyer_history", "data_quality", "other")
+# Added critical gap kinds per ADR 001
+KINDS = ("deadline", "eligibility", "price", "buyer_history", "data_quality", "other",
+          "tender_security", "evaluation_method", "payment_terms", "conflict_of_interest",
+          "process_readiness")
 
 
 class State(TypedDict, total=False):

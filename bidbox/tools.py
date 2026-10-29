@@ -212,8 +212,9 @@ def price_benchmark(category: str, amount: float, currency: str = "KES",
 @logged
 def window_baseline(ocid: str, min_peers: int = 5) -> dict:
     """How long was this tender open for bids, compared with comparable tenders (same method and category,
-    else same method, else same category)? No legal minimum is assumed or invented: short windows can be
-    legitimate (urgent needs), so this reports where the window sits among its peers and nothing more."""
+    else same method, else same category)? Per ADR 001, we cite the Act's prescribed minimum (s.97) before peer comparison.
+    PPADA Act Section 97: minimum tender periods are prescribed in regulations (7 days for open tenders per regs 86, 87, 89(7), 114, 119).
+    NOTE: 2020 Regulations are under legal challenge (*RCECA v AG*), so the 7-day minimum is regulation-dependent."""
     min_peers = max(1, int(min_peers))
     with closing(connect()) as conn:
         t = conn.execute("SELECT ocid, start, deadline, method, category FROM tenders WHERE ocid=?", (ocid,)).fetchone()
@@ -228,6 +229,15 @@ def window_baseline(ocid: str, min_peers: int = 5) -> dict:
         srcs = [{"ocid": ocid, "field_path": "tender.tenderPeriod.startDate"}, {"ocid": ocid, "field_path": "tender.tenderPeriod.endDate"}]
         if days < 0:
             return {**base, "window_days": days, "position": "window_invalid", "reason": "start date is after the deadline", "sources": srcs}
+
+        # Per ADR 001: cite Act's s.97 prescribed minimum (regulation-dependent, validity contested)
+        # Regulations 86, 87, 89(7), 114, 119 set 7-day minimum for open tenders
+        legal_minimum_note = " (PPADA Act Section 97 prescribes minimum tender periods in regulations; 2020 Regulations under legal challenge, so 7-day minimum is regulation-dependent per ADR 001)"
+        if days < 7:
+            base["legal_minimum_note"] = f"Bidding window is {days} days - below 7-day minimum per regulations (regulation-dependent, validity contested per ADR 001)"
+        else:
+            base["legal_minimum_note"] = f"Bidding window is {days} days (PPADA Act Section 97 prescribes minimum periods in regulations; 7-day minimum for open tenders per regulations 86, 87, 89(7), 114, 119 - regulation-dependent, validity contested per ADR 001)"
+
         groups = []
         if t["method"] and t["category"]:
             groups.append((f"same method and category ({t['method']}, {t['category']})", lambda r: r["method"] == t["method"] and r["category"] == t["category"]))
@@ -266,7 +276,8 @@ def window_baseline(ocid: str, min_peers: int = 5) -> dict:
 def amendment_check(ocid: str) -> dict:
     """Check if a tender has multiple releases (amendments/variations) rather than being overwritten.
     In OCDS, proper amendment handling means publishing new releases, not overwriting old ones.
-    This check detects whether the data shows evidence of proper amendment publication."""
+    This check detects whether the data shows evidence of proper amendment publication.
+    NOTE: Per ADR 001, PPIP OCDS has zero amendments, so "no amendments" must not be read as "no variations happened"."""
     with closing(connect()) as conn:
         # Check if we have any indication of multiple releases
         # Since we flatten to one row per ocid, we can't directly count releases
@@ -274,22 +285,25 @@ def amendment_check(ocid: str) -> dict:
         tender = conn.execute("SELECT * FROM tenders WHERE ocid=?", (ocid,)).fetchone()
         if not tender:
             return {"found": False, "ocid": ocid, "has_amendments": False, "issues": [], "sources": []}
-        
+
         issues = []
+        # Per ADR 001: PPIP OCDS has zero amendments - report this transparently
+        issues.append("Cannot be assessed - amendments not published in data source (PPIP OCDS has zero amendments across all tenders; this does not mean no variations occurred)")
+
         # Check for status changes that might indicate amendments
         # OCDS statuses: planned, planning, planned, active, cancelled, unsuccessful, withdrawn, complete
         statuses_considered_final = ("cancelled", "unsuccessful", "withdrawn", "complete")
         if tender["status"] not in statuses_considered_final:
             # Still active - could have amendments pending
             # We flag this for the human to verify if amendments exist
-            issues.append(f"Tender status is '{tender['status']}' - verify if any amendments have been published")
-        
+            issues.append(f"Tender status is '{tender['status']}' - verify if any amendments have been published (check tender document)")
+
         # Check award count for variations (multiple awards to same supplier = possible variation)
         awards = conn.execute("SELECT supplier_id, supplier_name, COUNT(*) as c FROM awards WHERE ocid=? GROUP BY supplier_id, supplier_name", (ocid,)).fetchall()
         for a in awards:
             if a["c"] > 1:
                 issues.append(f"Multiple awards ({a['c']}) to supplier {a['supplier_name'] or a['supplier_id']} - possible contract variation")
-        
+
         return {"found": True, "ocid": ocid, "has_amendments": len(issues) > 0, "issues": issues,
                 "sources": [{"ocid": ocid, "field_path": "tender.status"}]}
 
@@ -298,100 +312,113 @@ def amendment_check(ocid: str) -> dict:
 def ppada_date_order_check(ocid: str) -> dict:
     """Check PPADA Act date order: tender close → award (14 days minimum) → contract signing.
     Section 135(3): award notification must be at least 14 days before contract signing.
-    Also validates tender validity period (contract must be within validity period)."""
+    Also validates tender validity period (contract must be within validity period).
+    NOTE: Per ADR 001, rules dependent on 2020 Regulations carry validity_contested flag."""
     from datetime import datetime, timezone, timedelta
-    
+
     with closing(connect()) as conn:
         tender = conn.execute("SELECT * FROM tenders WHERE ocid=?", (ocid,)).fetchone()
         if not tender:
-            return {"found": False, "ocid": ocid, "order_valid": False, "issues": [], "sources": []}
-        
+            return {"found": False, "ocid": ocid, "order_valid": False, "issues": [], "sources": [], "validity_contested": False}
+
         issues = []
         deadline = _parse(tender["deadline"])
         start = _parse(tender["start"])
-        
+
         # Get awards for this tender
         awards = conn.execute("SELECT date FROM awards WHERE ocid=?", (ocid,)).fetchall()
-        
+
         if not awards:
             issues.append("No award recorded - cannot validate date order")
             return {"found": True, "ocid": ocid, "order_valid": False, "issues": issues,
-                    "sources": [{"ocid": ocid, "field_path": "awards[].date"}]}
-        
+                    "sources": [{"ocid": ocid, "field_path": "awards[].date"}], "validity_contested": False}
+
         # Find the first award date
         award_dates = sorted([_parse(a["date"]) for a in awards if _parse(a["date"])])
         if not award_dates:
             issues.append("Award dates are invalid or missing")
             return {"found": True, "ocid": ocid, "order_valid": False, "issues": issues,
-                    "sources": [{"ocid": ocid, "field_path": "awards[].date"}]}
-        
+                    "sources": [{"ocid": ocid, "field_path": "awards[].date"}], "validity_contested": False}
+
         first_award = award_dates[0]
-        
-        # Check: tender must close before award
+
+        # Check: tender must close before award (Act-based, not contested)
         if deadline and first_award:
             if first_award < deadline:
                 issues.append(f"Award date {first_award.date()} is before tender deadline {deadline.date()} - invalid order")
-        
-        # Check: contract signing should be at least 14 days after award
+
+        # Check: contract signing should be at least 14 days after award (Act section 135(3) - not contested)
         # We don't have contract signing date in OCDS, so we flag this as data gap
         issues.append("Contract signing date not in OCDS data - cannot validate 14-day PPADA requirement (section 135(3))")
-        
-        # Check: contract must be within tender validity period
-        # We don't have contract end date or validity period in our schema
+
+        # Check: minimum tender periods (Regulation-dependent - validity_contested per ADR 001)
         if start and deadline:
             validity_days = (deadline - start).days
             if validity_days and validity_days < 30:
-                issues.append(f"Bidding window is only {validity_days} days - check if this meets PPADA minimum periods")
-        
+                # Regulation 86, 87, 89(7), 114, 119 set 7-day minimum for open tenders
+                # But 2020 Regulations are under legal challenge (*RCECA v AG*)
+                issues.append(f"Bidding window is only {validity_days} days - check if this meets PPADA minimum periods (regulation-dependent, validity contested per ADR 001)")
+
         return {"found": True, "ocid": ocid, "order_valid": len(issues) == 0, "issues": issues,
-                "sources": [{"ocid": ocid, "field_path": "tender.tenderPeriod.endDate"}]}
+                "sources": [{"ocid": ocid, "field_path": "tender.tenderPeriod.endDate"}],
+                "validity_contested": True}  # True because it references regulation-dependent minimum periods
 
 
 @logged
 def single_bidder_check(ocid: str) -> dict:
     """Check for single-bidder tenders (PPADA Act flagging requirement).
-    Section 135: single-bidder situations require special procedures."""
+    Section 135: single-bidder situations require special procedures.
+    NOTE: Per ADR 001, Act-based rules are firm; this check uses Act section 135.
+    Per ADR 001: PPIP OCDS has zero tenderers, so this check may never fire on real data."""
     with closing(connect()) as conn:
         awards = conn.execute("SELECT award_id, supplier_id, supplier_name FROM awards WHERE ocid=?", (ocid,)).fetchall()
         if not awards:
-            return {"found": False, "ocid": ocid, "is_single_bidder": False, "issues": [], "sources": []}
-        
+            return {"found": False, "ocid": ocid, "is_single_bidder": False, "issues": [], "sources": [], "validity_contested": False}
+
+        # Per ADR 001: If no supplier data, report transparently
+        if not any(a["supplier_id"] or a["supplier_name"] for a in awards):
+            return {"found": True, "ocid": ocid, "is_single_bidder": False, "n_suppliers": 0,
+                    "issues": ["Cannot be assessed - tenderers (bidders) not published in data source (PPIP OCDS has zero tenderers across all tenders)"],
+                    "sources": [{"ocid": ocid, "field_path": "awards[].suppliers[]"}], "validity_contested": False}
+
         # Count distinct suppliers
         suppliers = set()
         for a in awards:
             key = _supplier_key(a["supplier_id"], a["supplier_name"])
             if key:
                 suppliers.add(key)
-        
+
         issues = []
         if len(suppliers) == 1:
             supplier_name = awards[0]["supplier_name"] or awards[0]["supplier_id"]
-            issues.append(f"Single-bidder tender: {supplier_name} (requires special PPADA procedures)")
-        
+            issues.append(f"Single-bidder tender: {supplier_name} (requires special PPADA procedures per section 135)")
+
         return {"found": True, "ocid": ocid, "is_single_bidder": len(suppliers) == 1, "n_suppliers": len(suppliers),
-                "issues": issues, "sources": [{"ocid": ocid, "field_path": "awards[].suppliers[]"}]}
+                "issues": issues, "sources": [{"ocid": ocid, "field_path": "awards[].suppliers[]"}], "validity_contested": False}
 
 
 @logged
 def termination_check(ocid: str) -> dict:
     """Check if contract is terminated with reason and date.
-    PPADA Act requires terminations to record reason and date."""
+    PPADA Act requires terminations to record reason and date.
+    NOTE: Per ADR 001, Act-based rules are firm; this check uses Act requirements.
+    Per ADR 001: termination reason and date are not in OCDS data, so we report this as a data gap."""
     with closing(connect()) as conn:
         tender = conn.execute("SELECT status, deadline FROM tenders WHERE ocid=?", (ocid,)).fetchone()
         if not tender:
-            return {"found": False, "ocid": ocid, "is_terminated": False, "issues": [], "sources": []}
-        
+            return {"found": False, "ocid": ocid, "is_terminated": False, "issues": [], "sources": [], "validity_contested": False}
+
         issues = []
         status = tender["status"]
-        
+
         # Check for terminated/withdrawn/cancelled status
         if status in ("terminated", "withdrawn", "cancelled"):
             issues.append(f"Contract status is '{status}' - verify that termination reason and date are recorded (PPADA Act requirement)")
-            # We don't have termination reason/date in our schema, so flag as data gap
-            issues.append("Termination reason and date not in OCDS data - cannot verify PPADA compliance")
-        
+            # Per ADR 001: termination reason and date are not in OCDS data - report transparently
+            issues.append("Termination reason and date not in OCDS data - cannot verify PPADA compliance (ask buyer to check tender document)")
+
         return {"found": True, "ocid": ocid, "is_terminated": status in ("terminated", "withdrawn", "cancelled"),
-                "issues": issues, "sources": [{"ocid": ocid, "field_path": "tender.status"}]}
+                "issues": issues, "sources": [{"ocid": ocid, "field_path": "tender.status"}], "validity_contested": False}
 
 
 @logged
@@ -568,9 +595,9 @@ def counterparty_quality(buyer_id: str | None = None, buyer_name: str | None = N
 def process_timeline_check(ocid: str) -> dict:
     """Check for process timeline anomalies using available dates.
     This is a proxy for evaluation time limit checks - we check the gap between
-    tender deadline and award date (decision window). Unusually long gaps may
-    indicate process delays, but we present this as a data observation, not a legal verdict.
-    PPADA Act Section 80 specifies evaluation timelines (exact period in regulations)."""
+    tender deadline and award date (decision window). Per ADR 001, we cite the
+    Act's 30-day evaluation limit (s.80(6)) explicitly before peer comparison.
+    PPADA Act Section 80(6): evaluation must not exceed 30 days."""
     from datetime import datetime, timezone, timedelta
 
     with closing(connect()) as conn:
@@ -607,10 +634,13 @@ def process_timeline_check(ocid: str) -> dict:
                 # Award before deadline is already caught by ppada_date_order_check
                 decision_window = None
 
-        # Flag unusually long decision windows (more than 60 days as a heuristic)
-        # This is a signal, not a legal verdict - exact PPADA period is in regulations
-        if decision_window and decision_window > 60:
-            issues.append(f"Decision window is {decision_window} days from deadline to award - this may indicate process delays (PPADA Act Section 80 specifies evaluation timelines)")
+        # Per ADR 001: cite Act's 30-day evaluation limit (s.80(6)) explicitly
+        if decision_window:
+            if decision_window > 30:
+                issues.append(f"Decision window is {decision_window} days from deadline to award - exceeds PPADA Act Section 80(6) 30-day evaluation limit")
+            else:
+                # Still report as fact, even if within limit
+                issues.append(f"Decision window is {decision_window} days from deadline to award (PPADA Act Section 80(6) specifies 30-day evaluation limit)")
 
         sources = [{"ocid": ocid, "field_path": "tender.tenderPeriod.endDate"},
                    {"ocid": ocid, "field_path": "awards[].date"}]
@@ -675,8 +705,13 @@ def peer_baseline(buyer: str, category: str, min_awards: int = 5) -> dict:
 
 # --------------------------------------------------------------------------- rendering
 
-SECTIONS = [("deadline", "Timing"), ("eligibility", "Eligibility and paperwork"), ("price", "Price position"),
-            ("buyer_history", "Buyer behaviour (read with care)"), ("other", "Tender details and documents"),
+# Reordered for buyer-side workflow per ADR 001: paperwork and process readiness first
+SECTIONS = [("process_readiness", "Paperwork and process readiness"),
+            ("deadline", "Timing"),
+            ("eligibility", "Eligibility and paperwork"),
+            ("price", "Price position"),
+            ("buyer_history", "Buyer behaviour (read with care)"),
+            ("other", "Tender details and documents"),
             ("data_quality", "Gaps and data limits")]
 LABEL = {"info": "Note", "check": "Check", "signal": "Signal (worth a look, not proof)"}
 ORDER = {"signal": 0, "check": 1, "info": 2}
@@ -747,6 +782,38 @@ def _render(ocid, summary, accepted, rejected_n, fid, row=None, as_of=None, audi
     cell = lambda x: _md(x).replace("|", "\\|")      # untrusted text can never break a table cell or start a new line/section
     lines = [f"# Tender readiness brief: {_md(g('title') or ocid)}", f"`{oneline(ocid).replace('`', chr(39))}`  |  Filing `{fid}`  |  **pending human approval**", "",
              f"> {DISCLAIMER}", "", "## At a glance", "| | |", "|---|---|"] + [f"| {k} | {cell(v)} |" for k, v in glance]
+
+    # Three-tier gap classification per ADR 001
+    blockers = []  # Missing deadline, eligibility, required documents, tender security, buyer identity
+    must_confirm = []  # Missing start date, payment terms
+    known_gaps = []  # Thin history, low-confidence benchmark
+
+    # Count data_quality findings as gaps
+    for f in accepted:
+        if f.kind == "data_quality":
+            stmt = f.statement.lower()
+            if any(x in stmt for x in ["deadline", "deadline not recorded", "missing deadline"]):
+                blockers.append(f)
+            elif any(x in stmt for x in ["start date", "start not recorded"]):
+                must_confirm.append(f)
+            elif any(x in stmt for x in ["thin history", "low confidence", "few awards"]):
+                known_gaps.append(f)
+            elif any(x in stmt for x in ["buyer name", "buyer identity", "buyer not recorded"]):
+                blockers.append(f)
+            elif any(x in stmt for x in ["eligibility", "required documents"]):
+                blockers.append(f)
+
+    # Add confidence banner based on gap counts
+    if blockers:
+        lines += ["", "### ⚠️ LOW CONFIDENCE - CRITICAL DATA MISSING",
+                  f"_This brief has {len(blockers)} critical gap(s) that must be addressed before proceeding._"]
+    elif must_confirm and len(must_confirm) > 2:
+        lines += ["", "### ⚠️ MEDIUM CONFIDENCE - REQUIRES VERIFICATION",
+                  f"_This brief has {len(must_confirm)} item(s) that must be confirmed with the buyer._"]
+    elif known_gaps and len(known_gaps) > 5:
+        lines += ["", "### ⚠️ MEDIUM CONFIDENCE - LIMITED HISTORY",
+                  f"_This brief has {len(known_gaps)} gap(s) due to limited historical data._"]
+
     lines += ["", "## Summary", _md(oneline(summary)[:1500])]
     for kind, title in SECTIONS:
         title = A["titles"].get(kind, title)
