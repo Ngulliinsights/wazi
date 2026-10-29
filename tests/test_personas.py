@@ -25,7 +25,7 @@ def data():
 
 def go(ocid, audience="buyer", as_of="2025-05-01"):
     r = asyncio.run(run_agent(ocid, "Prepare a tender readiness brief", as_of, StubLLM("invest_all"), audience=audience))
-    return r, (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text()
+    return r, (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text(encoding="utf-8")
 
 
 # ---------------- procurement manager
@@ -51,9 +51,9 @@ def test_pm_gets_an_accountability_trail_that_names_a_human():
     r, md = go("ocds-eval-abv-target")
     assert r["filing_id"] in md
     rec = gate.approve(r["filing_id"], "Wanjiku Mwangi")
-    dec = json.loads((config.OUTBOX / "filed" / f"{r['filing_id']}.decision.json").read_text())
+    dec = json.loads((config.OUTBOX / "filed" / f"{r['filing_id']}.decision.json").read_text(encoding="utf-8"))
     assert dec["approver"] == "Wanjiku Mwangi" and dec["decided_at"] and dec["action"] == "approved"
-    log = [json.loads(l) for l in config.LOG_PATH.read_text().splitlines()]
+    log = [json.loads(l) for l in config.LOG_PATH.read_text(encoding="utf-8").splitlines()]
     mine = [l for l in log if l.get("run_id") == r["run_id"]]
     assert {"get_tender_notice", "buyer_award_history", "price_benchmark", "peer_baseline", "file_brief"} <= {l.get("tool") for l in mine}
     assert any(l.get("tool") == "human_approval" and l.get("filing_id") == r["filing_id"] and l["approver"] == "Wanjiku Mwangi" for l in log)

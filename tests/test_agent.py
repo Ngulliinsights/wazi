@@ -27,7 +27,7 @@ def kinds(r):
 
 
 def logged_tools(run_id):
-    return [json.loads(l).get("tool") for l in config.LOG_PATH.read_text().splitlines() if json.loads(l).get("run_id") == run_id]
+    return [json.loads(l).get("tool") for l in config.LOG_PATH.read_text(encoding="utf-8").splitlines() if json.loads(l).get("run_id") == run_id]
 
 
 # ---- grounding unit tests
@@ -138,7 +138,7 @@ def test_ungrounded_number_in_summary_is_replaced_not_filed():
         {"kind": e["kind"], "statement": e["text"], "evidence": [e["id"]], "severity": "info"} for e in p["evidence"]])
     r = run(llm=llm)
     assert "987654" not in r["summary"]
-    assert "987654" not in (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text()
+    assert "987654" not in (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text(encoding="utf-8")
 
 
 def test_thin_category_history_is_broadened_and_recorded():

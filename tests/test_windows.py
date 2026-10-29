@@ -123,7 +123,7 @@ def test_the_sample_exercises_short_and_inverted_windows():
 # ---------- through the agent and the brief
 def run(ocid, audience="buyer", mode="loop", llm=None):
     r = asyncio.run(run_agent(ocid, "Prepare a tender readiness brief", "2025-05-01", llm or StubLLM("invest_all"), mode, audience=audience))
-    return r, (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text()
+    return r, (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text(encoding="utf-8")
 
 
 def sev(r, word): return [f["severity"] for f in r["findings"] if word in f["statement"].lower()]

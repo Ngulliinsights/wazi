@@ -23,7 +23,7 @@ def data():
 
 def brief(ocid, as_of="2025-05-01", audience="supplier"):
     r = asyncio.run(run_agent(ocid, "Prepare a tender readiness brief", as_of, StubLLM("invest_all"), audience=audience))
-    return (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text()
+    return (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text(encoding="utf-8")
 
 
 def test_brief_has_the_sections_a_supplier_needs_in_order():
@@ -65,7 +65,7 @@ def test_signals_are_labelled_as_prompts_for_review_and_listed_first():
     r = tools.file_brief("ocds-eval-abv-target", "s", [
         {"kind": "buyer_history", "statement": "A calm note here", "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title", "severity": "info"},
         {"kind": "buyer_history", "statement": "A loud signal here", "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title", "severity": "signal"}])
-    out = (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text()
+    out = (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text(encoding="utf-8")
     assert out.index("A loud signal here") < out.index("A calm note here")
 
 
@@ -87,7 +87,7 @@ def test_verdict_language_never_reaches_the_brief_even_with_a_valid_source(verdi
                 out["findings"].insert(0, {"kind": "other", "statement": verdict, "evidence": [out["findings"][0]["evidence"][0]], "severity": "info"})
             return out
     r = asyncio.run(run_agent("ocds-eval-abv-target", "Prepare a tender readiness brief", "2025-05-01", Pushy("invest_all")))
-    md = (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text()
+    md = (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text(encoding="utf-8")
     assert verdict not in md and not any(verdict == f["statement"] for f in r["findings"])
     # and the server enforces it too, independent of the agent's own check
     out = tools.file_brief("ocds-eval-abv-target", "s", [{"kind": "other", "statement": verdict, "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title"}])

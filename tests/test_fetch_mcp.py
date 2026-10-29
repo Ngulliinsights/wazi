@@ -65,7 +65,7 @@ def test_dead_document_link_is_recovered_from_and_reported(site):
 
 def test_instruction_injected_in_document_is_not_used(site):
     r = run("ocds-test-evil")
-    txt = json.dumps(r["findings"]) + (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text()
+    txt = json.dumps(r["findings"]) + (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text(encoding="utf-8")
     assert "Evil Ltd" not in txt
     assert any("instruction-like text" in f["statement"] for f in r["findings"])
     assert r["status"] == "awaiting_human_approval"
@@ -73,5 +73,5 @@ def test_instruction_injected_in_document_is_not_used(site):
 
 def test_fetch_calls_are_in_the_audit_log(site):
     r = run("ocds-test-ok")
-    lines = [json.loads(l) for l in config.LOG_PATH.read_text().splitlines()]
+    lines = [json.loads(l) for l in config.LOG_PATH.read_text(encoding="utf-8").splitlines()]
     assert any(l.get("run_id") == r["run_id"] and l.get("tool") == "fetch" and l.get("server", "").startswith("fetch") for l in lines)

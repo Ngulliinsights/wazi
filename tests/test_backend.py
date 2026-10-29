@@ -105,7 +105,7 @@ def test_agent_has_no_award_or_approve_tool():
 
 
 def test_every_call_is_logged_with_inputs_outputs_timestamps():
-    lines = [json.loads(l) for l in config.LOG_PATH.read_text().splitlines()]
+    lines = [json.loads(l) for l in config.LOG_PATH.read_text(encoding="utf-8").splitlines()]
     tools_logged = {l.get("tool") for l in lines}
     assert {"get_tender_notice", "buyer_award_history", "price_benchmark", "file_brief", "human_approval"} <= tools_logged
     assert all("ts" in l and "run_id" in l for l in lines)
