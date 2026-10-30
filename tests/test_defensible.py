@@ -50,7 +50,8 @@ def failed(rep): return [c["check"] for c in rep["checks"] if not c["ok"]]
 
 
 # ---------------- citations must be real
-CITE = lambda kind, oc, path, st="A plain fact here": [{"kind": kind, "statement": st, "source_ocid": oc, "field_path": path}]
+CITE = lambda kind, oc, path, st="A plain fact here": [{"kind": kind, "statement": st, "source_ocid": oc, "field_path": path, "evidence": ["E1"]}]
+ROLE, APPROVAL_DATE = "Procurement Officer", "2026-10-30"
 
 
 @pytest.mark.parametrize("kind,oc,path,ok", [
@@ -117,25 +118,32 @@ def test_dataset_fingerprint_ignores_reloads_of_the_same_file_and_changes_with_n
 def test_editing_the_brief_after_filing_blocks_any_decision_even_without_a_hash():
     fid = fid_ok(); p = md_path(fid); p.write_text(p.read_text(encoding="utf-8").replace("pending human approval", "APPROVED BY REGULATOR"), encoding="utf-8")
     with pytest.raises(gate.ConflictError, match="changed after it was filed"):
-        gate.approve(fid, "Real Person")
+        gate.approve(fid, "Real Person", gate.brief_sha256(fid), ROLE, APPROVAL_DATE)
     assert p.exists() and not md_path(fid, "filed").exists()
 
 
-@pytest.mark.parametrize("wrong", ["0" * 64, "abc", "", "ab" * 6, " "])
+@pytest.mark.parametrize("wrong", ["0" * 64, "abc", "ab" * 6, " "])
 def test_a_decision_must_name_the_exact_brief_that_was_reviewed(wrong):
     fid = fid_ok()
     with pytest.raises(gate.ConflictError, match="not the brief you reviewed"):
-        gate.approve(fid, "Real Person", wrong)
+        gate.approve(fid, "Real Person", wrong, ROLE, APPROVAL_DATE)
+    assert md_path(fid).exists()
+
+
+def test_a_decision_requires_a_fingerprint():
+    fid = fid_ok()
+    with pytest.raises(gate.ConflictError, match="brief_sha256 is required"):
+        gate.approve(fid, "Real Person", "", ROLE, APPROVAL_DATE)
     assert md_path(fid).exists()
 
 
 def test_correct_fingerprint_full_or_prefix_is_accepted_and_the_decision_records_the_chain():
     fid = fid_ok(); h = gate.brief_sha256(fid)
-    rec = gate.approve(fid, "Wanjiku Mwangi", h[:12].upper())
+    rec = gate.approve(fid, "Wanjiku Mwangi", h[:12].upper(), ROLE, APPROVAL_DATE)
     man_sha = provenance.sha_file(man_path(fid, "filed"))
     assert rec["md_sha256"] == h and rec["manifest_sha256"] == man_sha and rec["confirmed_sha256"] == h[:12].upper()
     assert man_path(fid, "filed").exists() and not man_path(fid).exists()
-    fid2 = fid_ok(); assert gate.reject(fid2, "Otieno Achieng", "no", gate.brief_sha256(fid2))["action"] == "rejected"
+    fid2 = fid_ok(); assert gate.reject(fid2, "Otieno Achieng", "no", gate.brief_sha256(fid2), ROLE, APPROVAL_DATE)["action"] == "rejected"
 
 
 def test_the_pending_list_always_shows_the_current_content_fingerprint():
@@ -148,9 +156,24 @@ def test_the_pending_list_always_shows_the_current_content_fingerprint():
 def test_a_fresh_filing_and_an_approved_one_both_verify():
     fid = fid_ok(); rep = provenance.verify_filing(fid)
     assert rep["verdict"] == "REPRODUCED" and not failed(rep) and len(rep["checks"]) >= 7
-    gate.approve(fid, "Wanjiku Mwangi", gate.brief_sha256(fid))
+    man = json.loads(man_path(fid).read_text(encoding="utf-8"))
+    assert man["independent_validation"]["brief_findings"]["valid"]
+    assert "Independent data checks" in md_path(fid).read_text(encoding="utf-8")
+    assert any(c["check"] == "independent filing checks match the manifest" and c["ok"] for c in rep["checks"])
+    gate.approve(fid, "Wanjiku Mwangi", gate.brief_sha256(fid), ROLE, APPROVAL_DATE)
     rep2 = provenance.verify_filing(fid); assert rep2["verdict"] == "REPRODUCED" and rep2["state"] == "filed"
     assert any(c["check"].startswith("approver is a named person") and c["ok"] for c in rep2["checks"])
+    assert any(c["check"] == "approver role and date are complete and valid" and c["ok"] for c in rep2["checks"])
+
+
+def test_tampering_with_independent_validation_is_detected():
+    fid = fid_ok()
+    path = man_path(fid)
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest["independent_validation"]["tender_integrity"]["valid"] = False
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    report = provenance.verify_filing(fid)
+    assert "independent filing checks match the manifest" in failed(report)
 
 
 def test_tampered_brief_is_caught():
@@ -177,7 +200,7 @@ def test_a_verdict_smuggled_into_a_recorded_finding_is_caught():
 
 
 def test_a_tampered_decision_record_is_caught():
-    fid = fid_ok(); gate.approve(fid, "Wanjiku Mwangi", gate.brief_sha256(fid))
+    fid = fid_ok(); gate.approve(fid, "Wanjiku Mwangi", gate.brief_sha256(fid), ROLE, APPROVAL_DATE)
     d = config.OUTBOX / "filed" / f"{fid}.decision.json"; rec = json.loads(d.read_text(encoding="utf-8")); rec["md_sha256"] = "0" * 64; d.write_text(json.dumps(rec), encoding="utf-8")
     assert "decision names the same brief and manifest" in failed(provenance.verify_filing(fid))
 
@@ -225,10 +248,12 @@ def test_api_exposes_fingerprints_rejects_stale_hashes_and_serves_verification()
             asyncio.run(asyncio.sleep(0.1))
         fid = c.get(f"/api/runs/{rid}").json()["filing_id"]
         listing = next(f for f in c.get("/api/filings").json() if f["filing_id"] == fid); h = listing["md_sha256"]
-        assert c.post(f"/api/filings/{fid}/approve", json={"approver": "Real Person"}).status_code == 422           # hash required
-        assert c.post(f"/api/filings/{fid}/approve", json={"approver": "Real Person", "brief_sha256": "0" * 64}).status_code == 409
+        assert c.post(f"/api/filings/{fid}/approve", json={"approver": "Real Person"}).status_code == 422           # approval fields required
+        decision = {"approver": "Real Person", "brief_sha256": "0" * 64, "role": ROLE, "date": APPROVAL_DATE}
+        assert c.post(f"/api/filings/{fid}/approve", json=decision).status_code == 409
         p = md_path(fid); p.write_text(p.read_text(encoding="utf-8") + "x", encoding="utf-8")
-        assert c.post(f"/api/filings/{fid}/approve", json={"approver": "Real Person", "brief_sha256": h}).status_code == 409   # changed since reviewed
+        decision["brief_sha256"] = h
+        assert c.post(f"/api/filings/{fid}/approve", json=decision).status_code == 409   # changed since reviewed
         assert c.get(f"/api/filings/{fid}/verify").json()["verdict"] == "FAILED"
         assert c.get("/api/filings/nope/verify").status_code == 404
 
@@ -238,7 +263,8 @@ def test_cli_shows_verifies_and_refuses_unfingerprinted_or_wrong_decisions():
     shown = run("show", fid); h = gate.brief_sha256(fid)
     assert shown.returncode == 0 and h in shown.stdout and "BRIEF FINGERPRINT" in shown.stdout
     assert "VERDICT: REPRODUCED" in run("verify", fid).stdout
-    assert run("approve", fid, "--approver", "Real Person").returncode == 2                                 # --sha256 is mandatory
-    bad = run("approve", fid, "--approver", "Real Person", "--sha256", "0" * 64)
+    assert run("approve", fid, "--approver", "Real Person").returncode == 2                                 # approval fields are mandatory
+    role_args = ["--role", ROLE, "--date", APPROVAL_DATE]
+    bad = run("approve", fid, "--approver", "Real Person", "--sha256", "0" * 64, *role_args)
     assert bad.returncode == 1 and "ERROR:" in bad.stdout and "Traceback" not in bad.stderr
-    assert run("approve", fid, "--approver", "Real Person", "--sha256", h).returncode == 0
+    assert run("approve", fid, "--approver", "Real Person", "--sha256", h, *role_args).returncode == 0

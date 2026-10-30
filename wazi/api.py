@@ -76,8 +76,10 @@ class RunReq(BaseModel):
 
 class Approval(BaseModel):
     approver: str
+    role: str
+    date: str
     reason: str = ""
-    brief_sha256: str | None = None     # REQUIRED to decide: the fingerprint of the brief the person actually reviewed
+    brief_sha256: str     # REQUIRED to decide: the fingerprint of the brief the person actually reviewed
 
 
 # --------------------------------------------------------------------------- pages and lookups
@@ -216,12 +218,12 @@ def _need_hash(body: Approval) -> str:
 
 @app.post("/api/filings/{fid}/approve")
 def approve(fid: str, body: Approval):
-    return _decide(gate.approve, fid, body.approver, _need_hash(body))
+    return _decide(gate.approve, fid, body.approver, _need_hash(body), body.role, body.date)
 
 
 @app.post("/api/filings/{fid}/reject")
 def reject(fid: str, body: Approval):
-    return _decide(gate.reject, fid, body.approver, body.reason, _need_hash(body))
+    return _decide(gate.reject, fid, body.approver, body.reason, _need_hash(body), body.role, body.date)
 
 
 @app.get("/api/filings/{fid}/verify")

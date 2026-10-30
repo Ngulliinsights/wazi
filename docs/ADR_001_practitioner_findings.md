@@ -1,4 +1,4 @@
-# ADR 001: Strategic Direction Based on Practitioner Research Findings
+# ADR 001: Strategic Direction Based on Simulated Practitioner Review and Legal Research
 
 **Status:** Accepted
 **Date:** 2026-10-29
@@ -236,6 +236,38 @@ These findings revealed fundamental issues with brief structure, signal methodol
 2. **Phase 2 (Short-term):** Reorder brief structure; implement three-tier gap classification; strengthen approval gate
 3. **Phase 3 (Medium-term):** Refactor signals to be Act-anchored; add critical gap coverage (tender security, evaluation method); handle real data limitations transparently
 4. **Phase 4 (Research):** Verify data protection requirements with legal counsel before recommending hosted deployment
+
+## Implementation Follow-up: Enforce the Prototype's Defensible Boundaries
+
+**Date:** 2026-10-30
+
+The review of the implementation found that several safeguards were described more strongly than their code paths warranted. This follow-up resolves the code-level gaps without treating synthetic tests or a simulated review as evidence of legal or practitioner acceptance.
+
+### Decisions
+
+1. **Required process-timeline coverage is deterministic.** Code always includes `timeline`; model planning is limited to optional checks. If planning fails, the fallback runs all optional checks as well as the required timeline check.
+2. **Finding kinds are limited to implemented evidence.** The model and graph share the finding-kind definition enforced by the filing schema. Unsupported categories are not accepted as if they were implemented checks. Each finding must contain at least one evidence reference.
+3. **Independent checks run at filing and are auditable.** Tender integrity, buyer consistency, and finding structure are checked before a brief is written. Results are shown in the brief and stored in the manifest; `verify` recomputes them. Data-quality warnings remain visible rather than blocking a brief, because missing and anomalous public data are part of the tool's stated scope. Invalid finding structure blocks filing.
+4. **Role, date, and fingerprint are mandatory on every decision surface.** The gate, CLI, HTTP API, and UI require all three. This records declared metadata; it does not authenticate the approver.
+5. **Evidence limits remain explicit.** The current model evaluation is synthetic and predates these fixes; it is not a post-change performance claim. Direct practitioner review and a real-data trial remain gates before operational use.
+
+### Alternatives Considered and Rejected
+
+- **Let the model choose every check, including the process timeline:** rejected because a planner has no reliable basis to omit this baseline check, and the previous prompt did not even offer it. Required coverage now belongs to deterministic code; only optional breadth remains model-selected.
+- **Add the ADR's future finding kinds to the schema immediately:** rejected because a schema enum does not implement evidence collection, legal interpretation, or citation support. Unsupported kinds remain unavailable until each has a deterministic evidence path and a reviewed rule basis.
+- **Block the whole brief on every data-integrity warning:** rejected because missing or inconsistent public fields should be reported as limitations, not silently turn the tool into a fail-closed data-quality gate. Only structurally invalid findings prevent filing; data warnings are shown and preserved for verification.
+- **Keep the validators as unit-tested helpers, or use an LLM as the independent checker:** rejected. Helpers not called by the filing path provide no filing control, while a second model pass is not independent or reliably reproducible. The deterministic checks now run at filing and are replayed by verification.
+- **Require role/date only in the CLI, or keep them optional for API callers:** rejected because every supported approval path must enforce the same recorded decision fields. The UI, API, CLI and underlying gate now require them.
+- **Treat typed name, role and date as authentication or add an in-house identity system:** rejected. Declared metadata is not proof of identity; authentication requires an institution-approved identity provider and access policy, which this local prototype does not have.
+- **Claim success from the existing synthetic evaluation or simulated practitioner review:** rejected. The existing evaluation remains a historical baseline, and a simulated review cannot establish workflow fit. Re-run model evaluations after these changes and obtain direct practitioner feedback on real, appropriately governed data before operational claims.
+
+### Remaining Work / Acceptance Gate
+
+- Validate schema mapping and data quality against an authorized real Kenya OCDS export.
+- Have procurement practitioners review briefs generated from representative, non-live cases and capture disagreements/omissions.
+- Review legal references and regulation-dependent logic with qualified counsel; do not treat this prototype as a legal compliance determination.
+- Add institution-approved identity authentication before any hosted or multi-user approval workflow.
+- Implement the printable fingerprint page and remaining critical-gap checks only after evidence availability and legal basis are verified.
 
 ## References
 

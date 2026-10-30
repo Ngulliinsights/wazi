@@ -25,7 +25,8 @@ const tick = () => new Promise(r => setImmediate(r));
   vm.runInContext(js, ctx); for (let i = 0; i < 5; i++) await tick();
   els.tender.value = 'o"1'; await els.go.onclick(); for (let i = 0; i < 5; i++) await tick();
   for (let i = 0; i < 20 && timers.length; i++) { const f = timers.shift(); await f(); for (let k = 0; k < 5; k++) await tick(); }
-  document.getElementById('who').value = 'Real Person'; await document.getElementById('ok').onclick(); for (let k = 0; k < 5; k++) await tick();
+  document.getElementById('who').value = 'Real Person'; document.getElementById('role').value = 'Procurement Officer';
+  document.getElementById('read').checked = true; await document.getElementById('ok').onclick(); for (let k = 0; k < 5; k++) await tick();
   const gm = document.getElementById('gmsg').textContent; await document.getElementById('vf').onclick(); for (let k = 0; k < 5; k++) await tick();
   console.log(JSON.stringify({ approveBody, hash: HASH, gm, verifyShown: document.getElementById('gmsg').innerHTML, hist, option: els.tender.innerHTML, brief: els.brief.innerHTML, goDisabled: els.go.disabled, gateHidden: els.gate.hidden }));
 })().catch(e => { console.log(JSON.stringify({ crash: String(e) })); process.exit(1); });

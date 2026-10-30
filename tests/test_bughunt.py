@@ -41,14 +41,14 @@ def go(ocid, llm=None, as_of="2025-05-01", aud="buyer"):
 @pytest.mark.parametrize("bad", ["..", "../x", "..\\x", "/etc/passwd", "ABCDEF0123", "abcdef012", "abcdef01234", "abc/def012", "", "ab cdef012", "ａｂｃｄｅｆ０１２３"])
 def test_gate_refuses_anything_that_is_not_a_minted_filing_id(bad):
     with pytest.raises(FileNotFoundError):
-        gate.approve(bad, "Real Person")
+        gate.approve(bad, "Real Person", "a" * 12, "Procurement Officer", "2026-10-30")
 
 
 def test_gate_will_not_move_arbitrary_files_by_absolute_path():
     r, _ = go("ocds-eval-abv-target")
     absolute = str(config.OUTBOX / "pending" / r["filing_id"])          # the exact trick that worked before the fix
     with pytest.raises(FileNotFoundError):
-        gate.reject(absolute, "Real Person")
+        gate.reject(absolute, "Real Person", "", "a" * 12, "Procurement Officer", "2026-10-30")
     assert (config.OUTBOX / "pending" / f"{r['filing_id']}.md").exists()
 
 
@@ -56,12 +56,13 @@ def test_gate_will_not_move_arbitrary_files_by_absolute_path():
 def test_gate_refuses_disguised_agent_names(name):
     r, _ = go("ocds-eval-abv-target")
     with pytest.raises(PermissionError):
-        gate.approve(r["filing_id"], name)
+        gate.approve(r["filing_id"], name, gate.brief_sha256(r["filing_id"]), "Procurement Officer", "2026-10-30")
 
 
 def test_gate_accepts_real_names_with_diacritics_and_stores_them_intact():
     r, _ = go("ocds-eval-abv-target")
-    rec = gate.reject(r["filing_id"], "Wanjiku  Mw\u00e1ngi", "notice\nincomplete\n## forged")
+    rec = gate.reject(r["filing_id"], "Wanjiku  Mw\u00e1ngi", "notice\nincomplete\n## forged",
+                      gate.brief_sha256(r["filing_id"]), "Procurement Officer", "2026-10-30")
     dec = json.loads((config.OUTBOX / "rejected" / f"{r['filing_id']}.decision.json").read_text(encoding="utf-8"))
     assert dec["approver"] == "Wanjiku Mw\u00e1ngi" and "\n" not in dec["reason"] and rec["approver"] == dec["approver"]
 
@@ -170,9 +171,9 @@ def test_a_nonsense_reference_date_is_a_clear_error_everywhere():
 
 # ---------- nothing is unbounded
 def test_oversized_statements_are_refused_and_oversized_lists_are_capped():
-    huge = [{"kind": "other", "statement": "x" * 200_000, "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title"}] * 3
+    huge = [{"kind": "other", "statement": "x" * 200_000, "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title", "evidence": ["E1"]}] * 3
     assert tools.file_brief("ocds-eval-abv-target", "s", huge)["status"] == "not_filed"
-    many = [{"kind": "other", "statement": f"Plain fact number {i} here", "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title"} for i in range(200)]
+    many = [{"kind": "other", "statement": f"Plain fact number {i} here", "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title", "evidence": ["E1"]} for i in range(200)]
     out = tools.file_brief("ocds-eval-abv-target", "s" * 50_000, many)
     md = (config.OUTBOX / "pending" / f"{out['filing_id']}.md").read_text(encoding="utf-8")
     assert out["accepted"] == 60 and "140 finding(s) were dropped" in md and len(md) < 40_000
@@ -251,6 +252,7 @@ def test_ui_retries_a_flaky_connection_and_escapes_hostile_tender_ids_and_briefs
     d = json.loads(out.stdout)
     assert any("Connection problem, retrying" in m for m in d["hist"]) and d["hist"][-1].startswith("Done in")
     assert "&quot;" in d["option"] and "<b>B</b>" not in d["option"] and "<script>" not in d["brief"] and d["gateHidden"] is False
+    assert d["approveBody"]["role"] == "Procurement Officer" and len(d["approveBody"]["date"]) == 10
 
 
 # ---------- packaging / Windows hygiene

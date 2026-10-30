@@ -50,7 +50,8 @@ def test_pm_is_not_shown_a_signal_that_typical_peers_explain_away():
 def test_pm_gets_an_accountability_trail_that_names_a_human():
     r, md = go("ocds-eval-abv-target")
     assert r["filing_id"] in md
-    rec = gate.approve(r["filing_id"], "Wanjiku Mwangi")
+    rec = gate.approve(r["filing_id"], "Wanjiku Mwangi", gate.brief_sha256(r["filing_id"]),
+                       "Procurement Officer", "2026-10-30")
     dec = json.loads((config.OUTBOX / "filed" / f"{r['filing_id']}.decision.json").read_text(encoding="utf-8"))
     assert dec["approver"] == "Wanjiku Mwangi" and dec["decided_at"] and dec["action"] == "approved"
     log = [json.loads(l) for l in config.LOG_PATH.read_text(encoding="utf-8").splitlines()]
@@ -68,14 +69,14 @@ def test_pm_can_reproduce_a_brief_for_an_auditor():
 @pytest.mark.parametrize("claim", ["This tender is compliant with the regulations", "The process appears irregular", "The buyer seems biased",
                                    "This award was unlawful", "The procurement is fully legal"])
 def test_pm_is_never_told_by_a_machine_that_a_process_is_legal_or_illegal(claim):
-    out = tools.file_brief("ocds-eval-abv-target", "s", [{"kind": "other", "statement": claim, "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title"}])
+    out = tools.file_brief("ocds-eval-abv-target", "s", [{"kind": "other", "statement": claim, "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title", "evidence": ["E1"]}])
     assert out["status"] == "not_filed", claim
 
 
 @pytest.mark.parametrize("fact", ["Bidders must provide a tax compliance certificate", "The notice requires proof of legal registration",
                                   "Eligibility: a fair price schedule must accompany the bid"])
 def test_pm_legitimate_requirements_are_not_mistaken_for_verdicts(fact):
-    out = tools.file_brief("ocds-eval-abv-target", "s", [{"kind": "eligibility", "statement": fact, "source_ocid": "ocds-eval-abv-target", "field_path": "tender.eligibilityCriteria"}])
+    out = tools.file_brief("ocds-eval-abv-target", "s", [{"kind": "eligibility", "statement": fact, "source_ocid": "ocds-eval-abv-target", "field_path": "tender.eligibilityCriteria", "evidence": ["E1"]}])
     assert out["status"] == "pending_approval", fact
 
 
@@ -102,5 +103,5 @@ def test_supplier_view_still_asks_questions_of_the_buyer():
 
 
 def test_unknown_audience_is_refused_not_guessed():
-    out = tools.file_brief("ocds-eval-abv-target", "s", [{"kind": "other", "statement": "A plain fact here", "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title"}], audience="auditor")
+    out = tools.file_brief("ocds-eval-abv-target", "s", [{"kind": "other", "statement": "A plain fact here", "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title", "evidence": ["E1"]}], audience="auditor")
     assert out["status"] == "not_filed" and "unknown audience" in out["reason"]

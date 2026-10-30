@@ -82,7 +82,7 @@ def test_replaying_a_historical_tender_as_of_an_earlier_date_is_the_intended_use
 
 
 def test_the_server_refuses_to_file_a_live_tender_even_if_the_agent_is_bypassed():
-    out = tools.file_brief("lp-live", "s", [{"kind": "deadline", "statement": "A plain fact here", "source_ocid": "lp-live", "field_path": "tender.tenderPeriod.endDate"}])
+    out = tools.file_brief("lp-live", "s", [{"kind": "deadline", "statement": "A plain fact here", "source_ocid": "lp-live", "field_path": "tender.tenderPeriod.endDate", "evidence": ["E1"]}])
     assert out["status"] == "not_filed" and "live tender" in out["reason"]
 
 

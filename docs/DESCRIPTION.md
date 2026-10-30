@@ -8,4 +8,4 @@ It is built on MCP: our own server of narrow read tools plus one acting tool tha
 
 Defensibility is the point. Each brief carries a manifest recording the data version, code version, model, every tool call with an output hash, the exact prompts, and the cost. A verify command replays the tool calls and re-derives the evidence; approval is bound to the exact brief reviewed, so an edited brief cannot be approved.
 
-Quality is tested adversarially: about 290 tests and 104 deliberately broken variants of the code that the tests must catch. The eval harness is quota-aware, resumable, and prices a run before spending anything. Evaluation against a real model is reported in EVALS.md, generated from the recorded runs, including what failed and what we left unfixed.
+Quality is tested with regression tests, adversarial cases, and 104 deliberately broken variants of the code that the tests must catch. The eval harness is quota-aware, resumable, and prices a run before spending anything. The synthetic-model evaluation in EVALS.md is a historical baseline, not a post-change performance claim; its failures and limitations are reported.

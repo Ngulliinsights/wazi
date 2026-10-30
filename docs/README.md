@@ -11,13 +11,13 @@ It never awards a tender and cannot approve its own filings.
 - **Primary:** Procurement managers (buyer side) who sign off tenders — need a health check of their own tender
 - **Secondary:** Small suppliers' supply chain managers — need to verify tender details before bidding
 
-**Status:** Backend + agent core built (own MCP server, borrowed Fetch MCP server, store, audit log, approval gate, LangGraph agent, 375 tests, 104-mutant check, eval harness, API + one-page UI, submission preflight). Strategic direction validated in ADR 001 based on practitioner research.
-**Not built yet:** Real Kenya data load (the real feed may omit start dates: untested), validity flags for regulation-dependent rules, three-tier gap classification, strengthened approval gate (role + date + printable fingerprint), Act-anchored signal refactoring, critical gap coverage (tender security, evaluation method, payment terms).
+**Status:** Prototype backend and agent core built (own MCP server, borrowed Fetch MCP server, store, audit log, LangGraph workflow, approval gate with declared role/date and fingerprint, independent filing checks, eval harness, API + one-page UI, regression suite and 104-mutant check).
+**Not established:** Real Kenya feed behaviour; legally current treatment of regulation-dependent rules; Act-anchored signal quality; complete coverage of tender security, evaluation method and payment terms; authenticated approver identity; direct practitioner acceptance. The direction in ADR 001 was informed by a simulated practitioner review and legal research, not validated through direct practitioner use.
 **Not yet tested:** The live open-weights path (`OllamaLLM`) against all eval cases. All agent tests use a deterministic `StubLLM` (not a model; results are flagged `llm: stub`). Run against a real local model before trusting any behaviour claim.
 **Data:** Currently a SYNTHETIC sample (`data/sample_ocds.json`). Swap in a real OCDS export with `python -m wazi.cli load <file>`.
 **Data half:** Built on tender, award and price history. Bid documents are not published by the portals, so no bid evaluation.
 
-**Scope and limits:** Wazi covers the pre-evaluation readiness slice of the procurement lifecycle (approximately one-quarter to one-third of the full cycle). It addresses market analysis (price benchmarking against past awards), tender notice quality (completeness checks), and buyer award history (supplier concentration signals). It does NOT cover needs identification, sourcing strategy, bid evaluation, award decision, contract management, or post-award review. Legal compliance checks (PPADA minimum tender periods, thresholds, AGPO preference schemes, conflict of interest) are intentionally out of scope. Strategic direction validated in ADR 001 based on practitioner research and legal briefing.
+**Scope and limits:** Wazi covers the pre-evaluation readiness slice of the procurement lifecycle (approximately one-quarter to one-third of the full cycle). It addresses market analysis (price benchmarking against past awards), tender notice quality (completeness checks), and buyer award history (supplier concentration signals). It does NOT cover needs identification, sourcing strategy, bid evaluation, award decision, contract management, or post-award review. Legal compliance checks (PPADA minimum tender periods, thresholds, AGPO preference schemes, conflict of interest) are intentionally out of scope. ADR 001 records hypotheses informed by a simulated practitioner review and legal research; direct practitioner validation is pending.
 
 **How it fits with existing systems:** Wazi works on public award and tender data and sits before evaluation. It does not evaluate bids, because portals publish notices and awards but not bid documents. How it fits alongside the portals and finance systems offices already use has not been validated with a practitioner.
 **One command (recommended):**
@@ -33,7 +33,7 @@ python -m venv .venv
 pip install -e ".[dev]"
 python -m wazi.cli load     # load sample data
 python -m wazi.cli audit    # field coverage and outlier audit
-python -m pytest              # 375 tests
+python -m pytest -m "not slow"
 python -m wazi.server       # MCP server over stdio
 python -m wazi.api          # one-page UI at http://127.0.0.1:8000
 ```
@@ -62,8 +62,8 @@ python -m wazi.agent ocds-synth-0001 --as-of 2026-01-01
 | Run agent (Ollama) | `python -m wazi.agent <ocid> --llm ollama --model qwen3:4b --as-of 2026-01-01` |
 | List pending briefs | `python -m wazi.cli pending` |
 | Show brief + fingerprint | `python -m wazi.cli show <filing_id>` |
-| Approve brief | `python -m wazi.cli approve <filing_id> --approver "Name" --sha256 <fingerprint>` |
-| Reject brief | `python -m wazi.cli reject <filing_id> --approver "Name" --reason "..." --sha256 <fingerprint>` |
+| Approve brief | `python -m wazi.cli approve <filing_id> --approver "Name" --role "Procurement Officer" --date YYYY-MM-DD --sha256 <fingerprint>` |
+| Reject brief | `python -m wazi.cli reject <filing_id> --approver "Name" --role "Procurement Officer" --date YYYY-MM-DD --reason "..." --sha256 <fingerprint>` |
 | Verify filing | `python -m wazi.cli verify <filing_id>` |
 | Run evals (stub) | `WAZI_HOME=/tmp/ev python -m wazi.evals --llm stub --runs 1` |
 | Run evals (Ollama) | `WAZI_HOME=/tmp/ev python -m wazi.evals --llm ollama --model qwen3:4b --runs 5` |
@@ -76,16 +76,7 @@ python -m wazi.agent ocds-synth-0001 --as-of 2026-01-01
 See [ARCHITECTURE.md](ARCHITECTURE.md) for a one-page architecture diagram and design decisions.
 
 ## Strategic Direction
-See [ADR_001_practitioner_findings.md](ADR_001_practitioner_findings.md) for the strategic direction validated by practitioner research and legal briefing. Key changes:
-- Regulation-dependent rules carry validity flags (2020 Regulations under legal challenge)
-- Brief structure reordered for buyer-side workflow
-- Signals anchored in Act citations, not peer medians
-- Approval gate strengthened (role + date + printable fingerprint)
-- Three-tier "cannot be assessed" classification
-- Critical gap coverage added (tender security, evaluation method, payment terms)
-- Real data limitations handled transparently
-- Fact separated from interpretation
-- Data protection requirements to be verified before hosted deployment
+See [ADR_001_practitioner_findings.md](ADR_001_practitioner_findings.md) for decisions and hypotheses informed by a simulated practitioner review and legal research. The ADR distinguishes implemented code changes from proposals and unresolved acceptance gates; it does not establish practitioner validation.
 
 ## Technology Stack
 - **Language:** Python 3.11+
@@ -100,7 +91,7 @@ See [ADR_001_practitioner_findings.md](ADR_001_practitioner_findings.md) for the
 ## Agent Architecture
 The agent is a LangGraph state machine with explicit nodes:
 1. **Intake** — Scope guard (refuses award/legal requests)
-2. **Plan** — Model chooses optional checks (history, benchmark, counterparty, amendment, timeline, ppada)
+2. **Plan** — Model may choose optional history, benchmark, counterparty and amendment checks; code always runs the process timeline check
 3. **See below** - Kenya-specific PPADA Act checks are conditionally included
 4. **Notice** — `get_tender_notice` tool
 5. **History** — `buyer_award_history` (buyer-id fallback, broadens if thin)
@@ -160,24 +151,19 @@ Two modes (`--mode pipeline|loop`, default loop), compared by `wazi.evals` on th
 1. Agent runs and produces a brief → `file_brief` queues it in `var/outbox/pending/`
 2. Human reviews: `python -m wazi.cli pending` lists pending briefs
 3. Human inspects: `python -m wazi.cli show <filing_id>` shows brief + fingerprint
-4. Human approves: `python -m wazi.cli approve <filing_id> --approver "Name" --sha256 <fingerprint>`
-5. Human rejects: `python -m wazi.cli reject <filing_id> --approver "Name" --reason "..." --sha256 <fingerprint>`
-6. Approval gate enforces: exact fingerprint match, approver name normalized (full-width/zero-width 'agent' refused), no path traversal
+4. Human approves: `python -m wazi.cli approve <filing_id> --approver "Name" --role "Procurement Officer" --date YYYY-MM-DD --sha256 <fingerprint>`
+5. Human rejects: `python -m wazi.cli reject <filing_id> --approver "Name" --role "Procurement Officer" --date YYYY-MM-DD --reason "..." --sha256 <fingerprint>`
+6. Approval gate enforces: exact fingerprint, required role/date, normalized approver name (full-width/zero-width 'agent' refused), and no path traversal. It does not authenticate identity.
 7. API endpoints: `GET /api/filings`, `POST /api/filings/{id}/approve`, `POST /api/filings/{id}/reject`, `GET /api/filings/{id}/verify`
 8. UI: One-page at `http://127.0.0.1:8000` with approve/reject buttons and verify button
 
-## Future Improvements
-- **Implement ADR 001 strategic direction:**
-  - Add validity flags to regulation-dependent rules (2020 Regulations under legal challenge)
-  - Reorder brief structure for buyer-side workflow (paperwork and process readiness first)
-  - Refactor signals to be Act-anchored, not peer-median only
-  - Strengthen approval gate (role + date + printable fingerprint)
-  - Implement three-tier gap classification (blocker/must-confirm/known gap)
-  - Add critical gap coverage (tender security with AGPO check, evaluation method, payment terms)
-  - Handle real data limitations transparently (PPIP OCDS lacks tenderers, amendments, milestones)
-  - Separate fact from interpretation in synthesize node
-- Load real Kenya OCDS export and validate against actual portal data
-- Add intent classifier for scope guard (replace keyword-based)
+## Unresolved Work
+- Validate schema mapping, data quality, and signal quality against an authorized real Kenya OCDS export.
+- Have procurement practitioners review representative, non-live briefs and record disagreements, omissions, and workflow fit.
+- Obtain qualified legal review of legal references and regulation-dependent logic; the prototype is not a compliance determination.
+- Add institution-approved identity authentication before hosted or multi-user approvals; current role and date are declared metadata only.
+- Validate evidence availability and legal basis before implementing remaining critical-gap checks, such as tender security, evaluation method, and payment terms.
+- Re-run model evaluations after these code changes and address the known keyword-based scope-guard failure.
 - Expand data half: bidder counts, bid security, payment behavior (not in OCDS awards)
 - Practitioner review of briefs produced with updated structure
 - Full EVALS.md from real-model runs across all eval tiers
@@ -243,7 +229,7 @@ The challenge asks whether someone who does the job reviewed this. That has to b
 - **Limits:** if someone rewrites the brief, manifest and decision consistently, nothing inside the folder can tell; anchor `md_sha256` somewhere outside (print it, email it, commit it). Code version is a hash of the source files, so line endings change it between machines.
 
 ## Testing on a laptop and a free tier
-- **Fast by default:** the suite runs the agent in-process (`WAZI_INPROC=1`, set by the tests): same tool functions and logging, no subprocesses. About 290 tests in under a minute. Six `@pytest.mark.mcp` contract tests run the REAL servers (tool list parity, run-id linkage across processes, replay across real serialisation, forged provenance, a full API run, quota stops through task groups). `pytest -m "not mcp"` for the quickest loop.
+- **Fast by default:** the suite runs the agent in-process (`WAZI_INPROC=1`, set by the tests): same tool functions and logging, no subprocesses. Use `pytest -m "not mcp"` for the quickest loop; MCP contract tests run the real servers and cover tool parity, run-id linkage, replay, forged provenance, a full API run, and quota stops through task groups.
 - **No model calls in tests, ever.** Models are stubbed or faked, so tests spend no quota and need no GPU.
 - **Mutation check:** `python scripts/mutate.py [lo:hi]` tries the most relevant tests first and the full suite as the fallback.
 - **Free-tier model client** (`WAZI_LLM_API=openai WAZI_LLM_URL=... WAZI_API_KEY=... WAZI_MODEL=...`): Bearer key (never logged), 429/5xx retried with Retry-After or exponential backoff, a daily-quota 429 raises `QuotaExhausted` (not retried), providers without JSON mode retried without it, `WAZI_RPM` pacing, `WAZI_MAX_CALLS` / `WAZI_MAX_TOKENS` budgets, `WAZI_LLM_CACHE=<file>` (`WAZI_LLM_CACHE_MODE=readonly` guarantees no network). A used-up quota stops the run loudly; it is never turned into a fallback brief.

@@ -13,6 +13,7 @@ from wazi.evals import build_fixture_releases
 from wazi.store import connect, load_ocds
 
 SAMPLE = Path(__file__).resolve().parent.parent / "data" / "sample_ocds.json"
+APPROVAL = {"role": "Procurement Officer", "date": "2026-10-30"}
 
 
 @pytest.fixture(scope="module")
@@ -65,24 +66,37 @@ def test_run_streams_agent_events_and_queues_a_brief(c):
     assert c.get(f"/api/runs/{r['run_id']}/events", params={"after": ev["next"]}).json()["events"] == []   # polling cursor works
     pend = {f["filing_id"]: f for f in c.get("/api/filings").json()}
     assert "At a glance" in pend[r["filing_id"]]["markdown"]
+    assert "Independent data checks" in pend[r["filing_id"]]["markdown"]
 
 
 def test_gate_over_http(c):
     r = start(c)
     fid = r["filing_id"]; h = sha_of(c, fid)
+    fields = {"brief_sha256": h, **APPROVAL}
     for who in ("agent", "Claude", "", "x"):
-        resp = c.post(f"/api/filings/{fid}/approve", json={"approver": who, "brief_sha256": h})
+        resp = c.post(f"/api/filings/{fid}/approve", json={"approver": who, **fields})
         assert resp.status_code == 403, who
     assert fid in [f["filing_id"] for f in c.get("/api/filings").json()]          # still pending
-    ok = c.post(f"/api/filings/{fid}/approve", json={"approver": "Wanjiku Mwangi", "brief_sha256": h})
+    ok = c.post(f"/api/filings/{fid}/approve", json={"approver": "Wanjiku Mwangi", **fields})
     assert ok.status_code == 200 and ok.json()["approver"] == "Wanjiku Mwangi"
     assert fid not in [f["filing_id"] for f in c.get("/api/filings").json()]
-    assert c.post(f"/api/filings/{fid}/approve", json={"approver": "Wanjiku Mwangi", "brief_sha256": h}).status_code == 404   # cannot decide twice
+    assert c.post(f"/api/filings/{fid}/approve", json={"approver": "Wanjiku Mwangi", **fields}).status_code == 404   # cannot decide twice
+
+
+def test_approval_requires_role_date_and_the_reviewed_fingerprint(c):
+    fid = start(c)["filing_id"]
+    h = sha_of(c, fid)
+    base = {"approver": "Wanjiku Mwangi", "brief_sha256": h, **APPROVAL}
+    assert c.post(f"/api/filings/{fid}/approve", json={"approver": base["approver"], "brief_sha256": h}).status_code == 422
+    assert c.post(f"/api/filings/{fid}/approve", json={**base, "role": "Observer"}).status_code == 403
+    assert c.post(f"/api/filings/{fid}/approve", json={**base, "date": "30-10-2026"}).status_code == 403
+    assert fid in [f["filing_id"] for f in c.get("/api/filings").json()]
 
 
 def test_reject_records_a_reason(c):
     fid = start(c)["filing_id"]
-    resp = c.post(f"/api/filings/{fid}/reject", json={"approver": "Otieno Achieng", "reason": "notice incomplete", "brief_sha256": sha_of(c, fid)})
+    resp = c.post(f"/api/filings/{fid}/reject", json={"approver": "Otieno Achieng", "reason": "notice incomplete",
+                                                       "brief_sha256": sha_of(c, fid), **APPROVAL})
     assert resp.status_code == 200 and resp.json()["reason"] == "notice incomplete"
     assert (config.OUTBOX / "rejected" / f"{fid}.md").exists()
 
@@ -90,7 +104,7 @@ def test_reject_records_a_reason(c):
 def test_bad_requests_are_handled_not_crashed(c):
     assert c.post("/api/runs", json={"ocid": "x", "mode": "turbo"}).status_code == 422
     assert c.get("/api/runs/nope").status_code == 404 and c.get("/api/runs/nope/events").status_code == 404
-    assert c.post("/api/filings/nope/approve", json={"approver": "Real Person", "brief_sha256": "a" * 12}).status_code == 404
+    assert c.post("/api/filings/nope/approve", json={"approver": "Real Person", "brief_sha256": "a" * 12, **APPROVAL}).status_code == 404
 
 
 def test_award_request_over_http_is_refused_and_files_nothing(c):

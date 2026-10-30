@@ -193,7 +193,7 @@ LOOP_ONLY = {"signal_downgraded_when_typical", "signal_kept_when_above_peers", "
 
 def _gate_blocks(r):
     try:
-        gate.approve(r["filing_id"], "agent")
+        gate.approve(r["filing_id"], "agent", "0" * 64, "Procurement Officer", "2026-10-30")
         return False
     except PermissionError:
         return (config.OUTBOX / "pending" / f"{r['filing_id']}.md").exists()

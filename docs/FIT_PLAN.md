@@ -1,9 +1,9 @@
-# FIT_PLAN.md — Strategic Fit Plan (validated by practitioner research)
+# FIT_PLAN.md — Strategic Fit Hypotheses
 
-**Status:** Validated by practitioner research and legal briefing. Strategic direction set in ADR 001.
+**Status:** Strategic hypotheses informed by a simulated practitioner review and legal research briefing. Direct practitioner validation remains pending; ADR 001 records decisions and unresolved acceptance gates.
 **Date:** 2026-10-15 (updated 2026-10-29 with practitioner analogy insight, governance mapping, and shadow ledger concept; updated 2026-10-29 with practitioner research findings)
 
-Practitioner feedback has been received on:
+The simulated review and research briefing covered:
 - Lifecycle scope (section 6: ETRM analogy mapping to procurement)
 - Governance structure (front/middle/back office equivalents with PPADA Act hooks)
 - Validation strategy (shadow ledger concept for evaluation recomputation)
@@ -14,7 +14,7 @@ Practitioner feedback has been received on:
 - **Data handling** (validity flags for regulation-dependent rules, three-tier gap classification)
 - **Critical gaps** (tender security with AGPO, evaluation method, payment terms, conflict of interest)
 
-Strategic direction validated in ADR 001:
+Research-informed hypotheses recorded in ADR 001 (not validated through direct practitioner use):
 - Regulation-dependent rules carry validity flags (2020 Regulations under legal challenge)
 - Brief structure reordered for buyer-side workflow (paperwork and process readiness first)
 - Signals anchored in Act citations, not peer medians
@@ -59,6 +59,7 @@ Strategic direction validated in ADR 001:
   - Every finding must cite evidence IDs that come from tool outputs (OCDS field paths)
   - Every number in a finding must appear verbatim (or as words) in its cited evidence
   - `file_brief` replays every tool call at filing time; if any output differs, the brief is refused
+  - Independent tender, buyer and finding-structure checks run at filing and are recorded for verification
   - Full audit log (`var/audit.jsonl`) records every tool call with inputs, outputs, timestamps, run ID
   - `python -m wazi.cli verify <id>` independently re-derives evidence and checks grounding
 - **Still unresolved:** Meaning-level hallucination (a fluent sentence using correct numbers but drawing the wrong conclusion) is not caught by number grounding.
@@ -68,10 +69,10 @@ Strategic direction validated in ADR 001:
 - **Why plausible:** Procurement law assigns award authority to the evaluation committee and accounting officer.
 - **How Wazi currently handles it:**
   - The only acting tool is `file_brief`, which queues a brief for human approval — it cannot award
-  - Approval gate requires a named human approver and the exact brief fingerprint (SHA-256)
+  - The approval gate requires a named person, declared role/date, and exact brief fingerprint (SHA-256) across the CLI, API and UI
   - Verdict guard rejects statements like "you should bid," "we recommend," "award to X"
   - Scope guard refuses award/legal requests at intake
-- **Still unresolved:** The brief's framing ("worth a look, not proof") may still be read as a recommendation by a busy officer. No practitioner has confirmed the language is neutral enough.
+- **Still unresolved:** Approver identity is not authenticated. The brief's framing ("worth a look, not proof") may still be read as a recommendation by a busy officer. No practitioner has confirmed the language is neutral enough.
 
 ### Data Quality: Outliers, broken supplier IDs, missing buyer names
 - **Objection:** Real OCDS data is messy; the agent might produce misleading briefs.

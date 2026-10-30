@@ -45,8 +45,10 @@ def test_validate_tender_integrity_not_found():
 def test_validate_brief_findings_valid():
     """Check passes for well-structured findings."""
     findings = [
-        {"kind": "deadline", "statement": "Deadline is recorded", "evidence": ["E1"], "severity": "info"},
-        {"kind": "price", "statement": "Price is 1000 KES", "evidence": ["E2"], "severity": "check"}
+        {"kind": "deadline", "statement": "Deadline is recorded", "source_ocid": "ocds-1",
+         "field_path": "tender.tenderPeriod.endDate", "evidence": ["E1"], "severity": "info"},
+        {"kind": "price", "statement": "Price is 1000 KES", "source_ocid": "ocds-1",
+         "field_path": "tender.value.amount", "evidence": ["E2"], "severity": "check"}
     ]
     r = validation.validate_brief_findings(findings)
     assert r["valid"] is True
@@ -62,7 +64,8 @@ def test_validate_brief_findings_empty():
 def test_validate_brief_findings_invalid_kind():
     """Check fails for invalid kind."""
     findings = [
-        {"kind": "invalid_kind", "statement": "Test", "evidence": ["E1"], "severity": "info"}
+        {"kind": "invalid_kind", "statement": "Test", "source_ocid": "ocds-1",
+         "field_path": "tender.title", "evidence": ["E1"], "severity": "info"}
     ]
     r = validation.validate_brief_findings(findings)
     assert r["valid"] is False
@@ -72,7 +75,7 @@ def test_validate_brief_findings_invalid_kind():
 def test_validate_brief_findings_missing_fields():
     """Check fails for missing required fields."""
     findings = [
-        {"kind": "deadline", "statement": "Test"}  # missing evidence and severity
+        {"kind": "deadline", "statement": "Test"}  # missing source, path, evidence and severity
     ]
     r = validation.validate_brief_findings(findings)
     assert r["valid"] is False
@@ -82,11 +85,27 @@ def test_validate_brief_findings_missing_fields():
 def test_validate_brief_findings_invalid_severity():
     """Check fails for invalid severity."""
     findings = [
-        {"kind": "deadline", "statement": "Test", "evidence": ["E1"], "severity": "invalid"}
+        {"kind": "deadline", "statement": "Test", "source_ocid": "ocds-1",
+         "field_path": "tender.title", "evidence": ["E1"], "severity": "invalid"}
     ]
     r = validation.validate_brief_findings(findings)
     assert r["valid"] is False
     assert any("invalid severity" in issue.lower() for issue in r["issues"])
+
+
+def test_findings_reject_empty_evidence_and_unimplemented_kinds():
+    findings = [
+        {"kind": "payment_terms", "statement": "Payment terms are missing", "source_ocid": "ocds-1",
+         "field_path": "tender.description", "evidence": ["E1"], "severity": "check"},
+        {"kind": "price", "statement": "Price is unclear", "source_ocid": "ocds-1",
+         "field_path": "tender.value.amount", "evidence": [], "severity": "check"},
+    ]
+    result = validation.validate_brief_findings(findings)
+    assert not result["valid"]
+    # payment_terms is not an implemented finding kind (deferred per ADR 001 Phase 3)
+    assert any("invalid kind" in issue.lower() for issue in result["issues"])
+    # evidence list cannot be empty
+    assert any("evidence" in issue.lower() for issue in result["issues"])
 
 
 def test_validate_brief_findings_not_a_list():

@@ -772,7 +772,8 @@ def _timing(deadline, as_of):
     return f"{when} (closed {(ref - dl).days} day(s) before the reference date {ref.date().isoformat()})"   # (ref - dl), not abs of a floored negative
 
 
-def _render(ocid, summary, accepted, rejected_n, fid, row=None, as_of=None, audience="buyer", footer=""):
+def _render(ocid, summary, accepted, rejected_n, fid, row=None, as_of=None, audience="buyer", footer="",
+            independent_validation=None):
     A = AUDIENCE[audience]
     g = lambda k: (row[k] if row is not None and row[k] not in (None, "") else None)
     val = f"{g('value'):,.0f} {g('currency') or ''}".strip() if g("value") else "not recorded"
@@ -783,9 +784,9 @@ def _render(ocid, summary, accepted, rejected_n, fid, row=None, as_of=None, audi
     lines = [f"# Tender readiness brief: {_md(g('title') or ocid)}", f"`{oneline(ocid).replace('`', chr(39))}`  |  Filing `{fid}`  |  **pending human approval**", "",
              f"> {DISCLAIMER}", "", "## At a glance", "| | |", "|---|---|"] + [f"| {k} | {cell(v)} |" for k, v in glance]
 
-    # Three-tier gap classification per ADR 001
-    blockers = []  # Missing deadline, eligibility, required documents, tender security, buyer identity
-    must_confirm = []  # Missing start date, payment terms
+    # Three-tier gap classification per ADR 001 (partial: tender security and payment terms deferred)
+    blockers = []  # Missing deadline, eligibility, required documents, buyer identity
+    must_confirm = []  # Missing start date
     known_gaps = []  # Thin history, low-confidence benchmark
 
     # Count data_quality findings as gaps
@@ -815,6 +816,14 @@ def _render(ocid, summary, accepted, rejected_n, fid, row=None, as_of=None, audi
                   f"_This brief has {len(known_gaps)} gap(s) due to limited historical data._"]
 
     lines += ["", "## Summary", _md(oneline(summary)[:1500])]
+    if independent_validation:
+        lines += ["", "### Independent data checks"]
+        for check, result in independent_validation.items():
+            label = check.replace("_", " ").capitalize()
+            if result["valid"]:
+                lines.append(f"**Passed:** {label}.")
+            else:
+                lines.append(f"**Review:** {label}: {_md('; '.join(result['issues']))}.")
     for kind, title in SECTIONS:
         title = A["titles"].get(kind, title)
         items = sorted((f for f in accepted if f.kind == kind), key=lambda f: ORDER.get(f.severity, len(ORDER)))
@@ -872,6 +881,12 @@ def _file_brief(conn, ocid, summary, findings, as_of, audience, provenance) -> d
         rejected.append({"finding": f"{overflow} further finding(s)", "reason": f"too many findings (maximum {MAX_FINDINGS})"})
     if not accepted:
         return refuse("no findings with a valid source", rejected)
+    from . import validation
+    independent_validation = validation.validate_filing(
+        conn, ocid, [finding.model_dump() for finding in accepted])
+    finding_check = independent_validation["brief_findings"]
+    if not finding_check["valid"]:
+        return refuse("independent finding validation failed: " + "; ".join(finding_check["issues"]), rejected)
     if provenance:
         mism = prov.replay_mismatches(provenance.get("tool_calls", []))
         if mism:
@@ -890,7 +905,8 @@ def _file_brief(conn, ocid, summary, findings, as_of, audience, provenance) -> d
     try:
         for _ in range(5):                           # a filing id is never reused, even on a (very unlikely) collision
             fid = uuid.uuid4().hex[:10]
-            md = _render(ocid, summary, accepted, dropped, fid, row, as_of, audience, footer)
+            md = _render(ocid, summary, accepted, dropped, fid, row, as_of, audience, footer,
+                         independent_validation)
             try:
                 _write_new(base / f"{fid}.md", md)
                 created.append(base / f"{fid}.md")
@@ -901,7 +917,8 @@ def _file_brief(conn, ocid, summary, findings, as_of, audience, provenance) -> d
             return refuse("could not allocate a free filing id")
         md_sha = prov.sha_file(base / f"{fid}.md")
         manifest = prov.make_manifest(fid=fid, run_id=run_id, ocid=ocid, audience=audience, as_of=as_of, md_sha256=md_sha, ds=ds,
-                                      accepted=accepted, provenance=provenance, replay_ok=True)
+                                      accepted=accepted, provenance=provenance, replay_ok=True,
+                                      independent_validation=independent_validation)
         _write_new(base / f"{fid}.manifest.json", json.dumps(manifest, indent=2, sort_keys=True, ensure_ascii=False))
         created.append(base / f"{fid}.manifest.json")
         man_sha = prov.sha_file(base / f"{fid}.manifest.json")
@@ -915,4 +932,5 @@ def _file_brief(conn, ocid, summary, findings, as_of, audience, provenance) -> d
             p.unlink(missing_ok=True)
         raise
     return {"status": "pending_approval", "filing_id": fid, "accepted": len(accepted), "run_id": run_id,
-            "md_sha256": md_sha, "manifest_sha256": man_sha, "rejected": rejected, "path": f"outbox/pending/{fid}.md"}
+            "md_sha256": md_sha, "manifest_sha256": man_sha, "rejected": rejected,
+            "independent_validation": independent_validation, "path": f"outbox/pending/{fid}.md"}

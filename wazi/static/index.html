@@ -83,8 +83,11 @@ fieldset{border:0;margin:0;padding:0}.seg{display:flex;gap:8px;align-items:flex-
   </div>
   <div class="tools"><button id="print" class="ghost">Print or save as PDF</button><button id="copy" class="ghost">Copy fingerprint</button></div></div>
  <div class="card" id="gate" hidden><h2>4. Decide</h2>
-  <p class="legend">Approving or rejecting records your name and this exact brief. It cannot award a tender.</p>
-  <label for="who">Your full name (a named person is required)</label><input id="who" autocomplete="name"><label for="why">Reason (optional)</label><input id="why">
+  <p class="legend">Approving or rejecting records your name, role, date and this exact brief. It cannot award a tender.</p>
+  <label for="who">Your full name (a named person is required)</label><input id="who" autocomplete="name">
+  <label for="role">Your procurement role</label><select id="role"><option value="">Select your role</option><option>Head of Procurement</option><option>Accounting Officer</option><option>Evaluation Committee Chair</option><option>Evaluation Committee Member</option><option>Procurement Officer</option></select>
+  <label for="decision-date">Decision date</label><input id="decision-date" type="date">
+  <label for="why">Reason (optional)</label><input id="why">
   <label class="chk"><input type="checkbox" id="read">I have read this brief and its fingerprint.</label>
   <button id="vf" class="ghost" style="width:100%">Check this brief can be reproduced</button>
   <div class="row"><button id="ok" disabled>Approve filing</button><button id="no" class="alt" disabled>Reject</button></div><div id="gmsg" aria-live="polite"></div></div>
@@ -125,7 +128,7 @@ function showSel(){const t=T[$('tender').value],s=$('sel');if(!t){s.className='s
 async function j(u,o){const r=await fetch(u,o);const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.detail||r.status);return b}
 async function load(){const t=await j('/api/tenders?q='+encodeURIComponent($('q').value));T={};t.forEach(x=>T[x.ocid]=x);
  $('tender').innerHTML=t.map(x=>`<option value="${esc(x.ocid)}">${esc(x.ocid)}  ${esc(x.buyer_name||x.buyer_id||'')} · ${esc(x.category||'')}${x.live?'  [LIVE: refused]':''}</option>`).join('');showSel()}
-const syncGate=()=>{$('ok').disabled=$('no').disabled=!(($('who').value||'').trim().length>=3&&$('read').checked)};
+const syncGate=()=>{$('ok').disabled=$('no').disabled=!(($('who').value||'').trim().length>=3&&$('role').value&&$('decision-date').value&&$('read').checked)};
 async function poll(){try{const e=await j(`/api/runs/${rid}/events?after=${nxt}`);if(nxt===0)$('trace').innerHTML='';e.events.forEach(line);nxt=e.next;
  const r=await j('/api/runs/'+rid);fails=0;if(!r.done){$('msg').className='';$('msg').textContent=(r.status==='queued'?'Waiting for the model...':'Working...')+' '+Math.round((Date.now()-t0)/1000)+'s';timer=setTimeout(poll,1000);return}
  $('go').disabled=false;const good=r.status==='awaiting_human_approval';$('msg').className=good?'ok':'bad';
@@ -134,19 +137,19 @@ async function poll(){try{const e=await j(`/api/runs/${rid}/events?after=${nxt}`
  if(r.filing_id){fid=r.filing_id;const f=(await j('/api/filings')).find(x=>x.filing_id===fid);if(f){fhash=f.md_sha256;
   $('brief').innerHTML=md(f.markdown)+'<p class="src">Brief fingerprint (sha256): <code>'+esc(f.md_sha256.slice(0,12))+'</code>. A decision applies only to exactly this content.</p>';
   const m=/\| Reference date \| (\d{4}-\d\d-\d\d) \(a replay/.exec(f.markdown);$('replaybar').hidden=!m;if(m)$('replaybar').textContent='Replay: this brief reads the tender as it stood on '+m[1]+'. It is not a live opportunity.';
-  $('gate').hidden=false;$('gmsg').textContent='';$('read').checked=false;syncGate();step(4);if($('brief').scrollIntoView)$('brief').scrollIntoView({behavior:'smooth'})}}
+  $('gate').hidden=false;$('gmsg').textContent='';$('read').checked=false;$('role').value='';const today=new Date();today.setMinutes(today.getMinutes()-today.getTimezoneOffset());$('decision-date').value=today.toISOString().slice(0,10);syncGate();step(4);if($('brief').scrollIntoView)$('brief').scrollIntoView({behavior:'smooth'})}}
  }catch(err){fails++;if(fails>=5){$('go').disabled=false;$('msg').className='bad';$('msg').textContent='Lost contact with the server: '+err.message;return}
   $('msg').className='bad';$('msg').textContent=`Connection problem, retrying (${fails}/5)...`;timer=setTimeout(poll,Math.min(8000,1000*fails*2))}}
 $('go').onclick=async()=>{if(!$('tender').value){$('msg').textContent='Choose a tender first.';return}
  save();$('go').disabled=true;$('gate').hidden=true;$('replaybar').hidden=true;$('brief').textContent='Working...';$('trace').innerHTML='';nxt=0;fails=0;t0=Date.now();clearTimeout(timer);step(2);
  try{const r=await j('/api/runs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ocid:$('tender').value,mode:$('mode').value,audience:aud(),as_of:$('asof').value||null})});rid=r.run_id;poll()}
  catch(e){$('msg').className='bad';$('msg').textContent=e.message;$('go').disabled=false;step(1)}};
-async function decide(kind){try{const r=await j(`/api/filings/${fid}/${kind}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({approver:$('who').value,reason:$('why').value,brief_sha256:fhash})});
+async function decide(kind){try{const r=await j(`/api/filings/${fid}/${kind}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({approver:$('who').value,role:$('role').value,date:$('decision-date').value,reason:$('why').value,brief_sha256:fhash})});
  $('gmsg').className='ok';$('gmsg').textContent=`${r.action} by ${r.approver} at ${r.decided_at}. This brief is now locked: any later edit is detected.`;$('ok').disabled=$('no').disabled=true}catch(e){$('gmsg').className='bad';$('gmsg').textContent=e.message}}
 $('vf').onclick=async()=>{try{const r=await j(`/api/filings/${fid}/verify`);$('gmsg').className=r.verdict==='REPRODUCED'?'ok':'bad';
  $('gmsg').innerHTML=esc(r.verdict)+'<details><summary>'+r.checks.filter(c=>c.ok).length+' of '+r.checks.length+' checks passed</summary>'+r.checks.map(c=>'<div>'+(c.ok?'✓ ':'✗ ')+esc(c.check)+(!c.ok&&c.detail?': '+esc(c.detail):'')+'</div>').join('')+'</details>'}
  catch(e){$('gmsg').className='bad';$('gmsg').textContent=e.message}};
-$('ok').onclick=()=>decide('approve');$('no').onclick=()=>decide('reject');$('who').oninput=syncGate;$('read').onchange=syncGate;$('tender').onchange=showSel;$('q').oninput=load;
+$('ok').onclick=()=>decide('approve');$('no').onclick=()=>decide('reject');$('who').oninput=syncGate;$('role').onchange=syncGate;$('decision-date').onchange=syncGate;$('read').onchange=syncGate;$('tender').onchange=showSel;$('q').oninput=load;
 $('q').onkeydown=e=>{if(e.key==='ArrowDown'){e.preventDefault();$('tender').focus()}};
 $('print').onclick=()=>window.print();$('copy').onclick=()=>{try{navigator.clipboard.writeText(fhash||'');$('gmsg').className='ok';$('gmsg').textContent='Fingerprint copied.'}catch(e){}};
 (async()=>{restore();try{const c=await j('/api/config');$('asof').value=c.as_of;$('llm').textContent='model: '+(c.llm==='stub'?'STUB (demo only, not a real model)':c.llm);await load()}

@@ -18,7 +18,7 @@ READ_TOOLS = ("get_tender_notice", "buyer_award_history", "price_benchmark", "pe
               "counterparty_quality", "amendment_check", "aged_items_check", "budget_exposure", "ppada_date_order_check",
               "single_bidder_check", "termination_check", "publication_quality_check", "process_timeline_check")
 MAX_TEXT = 20000
-SCHEMA = 1
+SCHEMA = 2
 
 # --------------------------------------------------------------------------- hashing
 
@@ -115,13 +115,15 @@ def _cap(t) -> dict:
     return {"sha256": sha(t), "text": t[:MAX_TEXT], "truncated": len(t) > MAX_TEXT}
 
 
-def make_manifest(*, fid, run_id, ocid, audience, as_of, md_sha256, ds, accepted, provenance, replay_ok) -> dict:
+def make_manifest(*, fid, run_id, ocid, audience, as_of, md_sha256, ds, accepted, provenance, replay_ok,
+                  independent_validation) -> dict:
     p = provenance or {}
     tool_calls = p.get("tool_calls") or []
     return {
         "schema": SCHEMA, "filing_id": fid, "run_id": run_id, "ocid": ocid, "audience": audience, "as_of": as_of,
         "created": datetime.now(timezone.utc).isoformat(), "md_sha256": md_sha256, "dataset": ds, "code_version": code_version(),
         "provenance_supplied": bool(provenance), "replay": {"checked": len(tool_calls), "ok": replay_ok},
+        "independent_validation": independent_validation,
         "run": p.get("run"), "tool_calls": tool_calls, "documents": p.get("documents") or [], "notes": p.get("notes") or [],
         "evidence": p.get("evidence") or [],
         "model_calls": [
@@ -202,6 +204,14 @@ def verify_filing(fid: str) -> dict:
             approver = d.get("approver")
             add("approver is a named person",
                 isinstance(approver, str) and bool(approver.strip()) and approver.strip().casefold() not in gate.AGENT_NAMES)
+            if m.get("schema", 1) >= 2:
+                try:
+                    gate._check_approver(approver, d.get("role"), d.get("date"))
+                    valid_approval_metadata = True
+                except (PermissionError, TypeError):
+                    valid_approval_metadata = False
+                add("approver role and date are complete and valid", valid_approval_metadata,
+                    "decision is missing a valid role or ISO date" if not valid_approval_metadata else "")
         else:
             add("decision file is readable", False, err or "not a JSON object")
 
@@ -214,6 +224,12 @@ def verify_filing(fid: str) -> dict:
             f"filed on {m.get('code_version')}, now {code_version()}", "data")
 
         if not m.get("provenance_supplied"):
+            if m.get("schema", 1) >= 2:
+                from . import validation
+                recorded_validation = m.get("independent_validation")
+                current_validation = validation.validate_filing(conn, m.get("ocid", ""), m.get("findings") or [])
+                add("independent filing checks match the manifest", current_validation == recorded_validation,
+                    "independent check results differ from those recorded at filing" if current_validation != recorded_validation else "")
             return {"filing_id": fid, "state": where, "verdict": "NOT REPRODUCIBLE (no provenance supplied)", "checks": checks}
 
         calls = m.get("tool_calls") or []
@@ -247,6 +263,12 @@ def verify_filing(fid: str) -> dict:
         by_id = {e["id"]: e for e in m.get("evidence") or []}
         bad = []
         findings = m.get("findings") or []
+        if m.get("schema", 1) >= 2:
+            from . import validation
+            recorded_validation = m.get("independent_validation")
+            current_validation = validation.validate_filing(conn, m.get("ocid", ""), findings)
+            add("independent filing checks match the manifest", current_validation == recorded_validation,
+                "independent check results differ from those recorded at filing" if current_validation != recorded_validation else "")
         for f in findings:
             label = (f.get("statement") or "")[:50]
             ids = f.get("evidence") or []

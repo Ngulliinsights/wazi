@@ -30,16 +30,17 @@ def _check_approver(name: str, role: str | None = None, date_str: str | None = N
     if len(n) < 3 or not any(c.isalpha() for c in n) or n.casefold() in AGENT_NAMES:
         raise PermissionError("a named human approver is required")
 
-    # Per ADR 001: Role validation
-    if role and role not in VALID_ROLES:
+    if role not in VALID_ROLES:
         raise PermissionError(f"invalid role '{role}'; must be one of: {', '.join(sorted(VALID_ROLES))}")
 
-    # Per ADR 001: Date validation
-    if date_str:
-        try:
-            date.fromisoformat(date_str)
-        except ValueError:
-            raise PermissionError(f"invalid date '{date_str}'; must be ISO format (YYYY-MM-DD)")
+    if not isinstance(date_str, str):
+        raise PermissionError("an approval date is required in ISO format (YYYY-MM-DD)")
+    try:
+        parsed_date = date.fromisoformat(date_str)
+    except ValueError:
+        raise PermissionError(f"invalid date '{date_str}'; must be ISO format (YYYY-MM-DD)") from None
+    if parsed_date.isoformat() != date_str:
+        raise PermissionError(f"invalid date '{date_str}'; must be ISO format (YYYY-MM-DD)")
 
     return n
 
@@ -83,10 +84,11 @@ def _move(fid: str, dest: str, who: str, action: str, reason: str | None = None,
     man = src / f"{fid}.manifest.json"
     if man.exists() and json.loads(man.read_text(encoding="utf-8")).get("md_sha256") != cur:
         raise ConflictError("the brief file changed after it was filed; refusing to decide on altered content")
-    if confirmed is not None:
-        c = str(confirmed).strip().lower()
-        if len(c) < MIN_HASH_PREFIX or not cur.startswith(c):
-            raise ConflictError("the brief on file is not the brief you reviewed (content fingerprint mismatch); reload and review it again")
+    if not confirmed:
+        raise ConflictError("brief_sha256 is required: a decision must name the exact brief that was reviewed")
+    c = str(confirmed).strip().lower()
+    if len(c) < MIN_HASH_PREFIX or not cur.startswith(c):
+        raise ConflictError("the brief on file is not the brief you reviewed (content fingerprint mismatch); reload and review it again")
     out = config.OUTBOX / dest
     for ext in ("md", "json", "manifest.json"):
         if (src / f"{fid}.{ext}").exists():
@@ -101,9 +103,9 @@ def _move(fid: str, dest: str, who: str, action: str, reason: str | None = None,
     return rec
 
 
-def approve(filing_id: str, approver: str, brief_sha256: str | None = None, role: str | None = None, date_str: str | None = None) -> dict:
+def approve(filing_id: str, approver: str, brief_sha256: str, role: str, date_str: str) -> dict:
     return _move(filing_id, "filed", _check_approver(approver, role, date_str), "approved", None, brief_sha256, role, date_str)
 
 
-def reject(filing_id: str, approver: str, reason: str = "", brief_sha256: str | None = None, role: str | None = None, date_str: str | None = None) -> dict:
+def reject(filing_id: str, approver: str, reason: str, brief_sha256: str, role: str, date_str: str) -> dict:
     return _move(filing_id, "rejected", _check_approver(approver, role, date_str), "rejected", reason, brief_sha256, role, date_str)

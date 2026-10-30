@@ -2,6 +2,7 @@
 code gathers evidence, enforces grounding and scope, and stops at the human gate."""
 import asyncio
 import json
+import math
 import os
 import sys
 import time
@@ -15,7 +16,7 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 from .. import audit_log, policy, provenance as prov
-from ..findings import MAX_STATEMENT, has_verdict
+from ..findings import FINDING_KINDS, MAX_STATEMENT, has_verdict
 from .. import tools
 from . import evidence as ev
 from . import fetcher
@@ -25,13 +26,17 @@ from .llm import LLMError, OllamaLLM, QuotaExhausted, StubLLM  # noqa: F401  (St
 MAX_ATTEMPTS = 2
 MAX_INVEST_STEPS = 3
 MAX_DOCS = 2
-DEFAULT_CHECKS = ["history", "benchmark", "counterparty", "amendment", "timeline"]
+DEFAULT_CHECKS = ["history", "benchmark", "counterparty", "amendment"]   # optional: the model may drop them
+REQUIRED_CHECKS = ["timeline"]                                           # always run
 INVEST_TOOLS = ["peer_baseline", "history_all_categories"]   # the model picks a NAME from this list; code supplies the arguments
 SEVERITIES = ("info", "check", "signal")
-# Added critical gap kinds per ADR 001
-KINDS = ("deadline", "eligibility", "price", "buyer_history", "data_quality", "other",
-          "tender_security", "evaluation_method", "payment_terms", "conflict_of_interest",
-          "process_readiness")
+KINDS = FINDING_KINDS
+REFUSAL_REASON = "out of scope: this tool never awards, ranks bidders or recommends a bid"
+
+# state key -> role label, used to tag each recorded tool call in the provenance
+ROLE_KEYS = (("notice", "notice"), ("history", "history"), ("bench", "benchmark"),
+             ("cpq", "counterparty"), ("amendment", "amendment"), ("timeline", "timeline"),
+             ("window", "window"), ("peers", "peers"), ("wide", "history_wide"))
 
 
 class State(TypedDict, total=False):
@@ -89,6 +94,74 @@ def _ms(t0: float) -> float:
     return round((time.perf_counter() - t0) * 1000, 1)
 
 
+# --------------------------------------------------------------------------- pure verification helpers
+
+def _check_one(f, by_id: dict[str, dict]) -> tuple[dict | None, str | None]:
+    """Validate one model finding against the evidence. Returns (finding, None) or (None, reason)."""
+    if not isinstance(f, dict):
+        return None, "finding is not an object"
+    ids = f.get("evidence")
+    ids = [ids] if isinstance(ids, str) else ids
+    if not isinstance(ids, list) or not ids or not all(isinstance(i, str) and i in by_id for i in ids):
+        return None, "cites missing or unknown evidence"
+    ids = list(dict.fromkeys(ids))
+    stmt = f.get("statement")
+    if not isinstance(stmt, str) or len(stmt.strip()) < 5:
+        return None, "statement missing or too short"
+    if len(stmt) > MAX_STATEMENT:
+        return None, f"statement longer than {MAX_STATEMENT} characters"
+    if has_verdict(stmt):
+        return None, "verdict or advice language; state facts and signals only"
+    bad = ev.ungrounded_numbers(stmt, [by_id[i]["text"] for i in ids])
+    if bad:
+        return None, f"numbers not in cited evidence: {bad}"
+
+    first = by_id[ids[0]]
+    sev = f.get("severity") if f.get("severity") in SEVERITIES else "info"
+    if sev == "signal" and not any(by_id[i]["signal"] for i in ids):
+        sev = "check"  # a model cannot raise a signal the data did not raise
+    kind = f.get("kind") if f.get("kind") in KINDS else first["kind"]
+    return {"kind": kind, "statement": stmt, "source_ocid": first["source_ocid"],
+            "field_path": first["field_path"], "severity": sev, "evidence": ids}, None
+
+
+def check_findings(raw: list, evidence: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Split model findings into (accepted, rejected). Exact repeats are dropped silently."""
+    by_id = {e["id"]: e for e in evidence}
+    accepted, rejected, seen = [], [], set()
+    for f in raw:
+        finding, reason = _check_one(f, by_id)
+        if reason:
+            rejected.append({"finding": f if isinstance(f, dict) else str(f)[:80], "reason": reason})
+        elif finding["statement"] not in seen:
+            seen.add(finding["statement"])
+            accepted.append(finding)
+    return accepted, rejected
+
+
+def _template_to_findings(evidence: list[dict]) -> list[dict]:
+    """Deterministic floor: one finding per evidence item, with source fields filled in."""
+    by_id = {e["id"]: e for e in evidence}
+    return [{"kind": f["kind"], "statement": f["statement"],
+             "source_ocid": by_id[f["evidence"][0]]["source_ocid"],
+             "field_path": by_id[f["evidence"][0]]["field_path"],
+             "severity": f["severity"], "evidence": list(f["evidence"])}
+            for f in ev.template_findings(evidence)]
+
+
+def _has_documents(ocid: str, as_of: str | None) -> bool:
+    try:
+        return bool(tools.get_tender_notice.__wrapped__(ocid, as_of).get("documents"))
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _leaves(eg: BaseExceptionGroup) -> list[BaseException]:
+    return [x for sub in eg.exceptions for x in (_leaves(sub) if isinstance(sub, BaseExceptionGroup) else [sub])]
+
+
+# --------------------------------------------------------------------------- graph
+
 def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: ClientSession | None = None, t0_run: float | None = None):
     calls: list[dict] = []   # every read-tool call with the hash of its exact output: the filing must be able to replay them
 
@@ -115,31 +188,33 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
             calls.append({"tool": tool, "args": dict(args), "output_sha256": prov.sha(out)})
         return out
 
+    async def ask(kind: str, payload: dict):
+        """Run a (blocking) model call off the event loop."""
+        return await asyncio.to_thread(llm.complete_json, kind, payload)
+
     # ------------------------------------------------------------------ nodes: gather
 
     async def intake(s: State):
         emit("intake", ocid=s["ocid"], request=s.get("request"), as_of=s.get("as_of"), llm=getattr(llm, "name", "?"))
         if ev.violates_scope(s.get("request", "")):
-            emit("refused", reason="out of scope: this tool never awards, ranks bidders or recommends a bid")
-            return {"status": "refused"}
+            emit("refused", reason=REFUSAL_REASON)
+            return {"status": "refused", "error": REFUSAL_REASON}
         return {"notes": [], "attempt": 0, "feedback": "", "best": []}
 
     async def plan(s: State):
         try:
-            out = await asyncio.to_thread(llm.complete_json, "plan", {"facts": f"ocid {s['ocid']}; optional checks: history, benchmark"})
+            out = await ask("plan", {"facts": f"ocid {s['ocid']}; optional checks: {', '.join(DEFAULT_CHECKS)}"})
             if not isinstance(out, dict):
                 raise LLMError("plan was not a JSON object")
             asked = out.get("checks") if isinstance(out.get("checks"), list) else []
-            checks = list(dict.fromkeys(c for c in asked if c in DEFAULT_CHECKS))
-            if not checks:
-                raise LLMError("plan had no valid checks")
+            checks = list(dict.fromkeys([*REQUIRED_CHECKS, *(c for c in asked if c in DEFAULT_CHECKS)]))
             emit("plan", checks=checks, rationale=str(out.get("rationale", ""))[:300])
             return {"plan": checks}
         except QuotaExhausted:
             raise                                    # a used-up quota is not a bad model answer: stop, loudly
         except Exception as e:  # any model/client failure, not only LLMError, must not stop the run
             emit("plan_fallback", reason=repr(e)[:200])
-            return {"plan": list(DEFAULT_CHECKS)}
+            return {"plan": [*REQUIRED_CHECKS, *DEFAULT_CHECKS]}
 
     async def notice(s: State):
         n = await call("get_tender_notice", ocid=s["ocid"], as_of=s.get("as_of"))
@@ -175,7 +250,8 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
         cat = n["notice"].get("category")
         h = await call("buyer_award_history", buyer=key, **({"category": cat} if cat else {}))
         broadened = False
-        if cat and (not h.get("found") or h["n_awards"] < tools.THIN_HISTORY):  # recovery: thin in-category history
+        # recovery: thin in-category history (a tool error is not thinness, so it is not retried)
+        if cat and not h.get("error") and (not h.get("found") or h["n_awards"] < tools.THIN_HISTORY):
             wide = await call("buyer_award_history", buyer=key)
             if wide.get("found") and wide["n_awards"] > (h.get("n_awards") or 0):
                 emit("history_broadened", reason="thin in-category history; used all categories")
@@ -196,7 +272,7 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
             amount = float(val) if (cat and val is not None) else None
         except (TypeError, ValueError):
             amount = None
-        if amount is None:
+        if amount is None or not math.isfinite(amount) or amount <= 0:
             notes.append("price benchmark skipped: category or estimated value not recorded")
             emit("benchmark_skipped", reason="category or value missing")
             return {"bench": None, "notes": notes}
@@ -204,48 +280,41 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
                        currency=n.get("currency") or "KES", exclude_ocid=s["ocid"])
         return {"bench": b, "notes": notes}
 
+    # The three checks below add no notes: build_evidence already turns their results into evidence,
+    # and a note on top would put every issue into the evidence twice.
+
     async def counterparty(s: State):
         """Pre-trade style check: verify buyer data quality before proceeding with analysis."""
         if "counterparty" not in s["plan"]:
             return {"cpq": None}
-        n, notes = s["notice"], list(s["notes"])
-        buyer_id = n.get("buyer_id")
-        buyer_name = n["notice"].get("buyer_name")
-        cpq = await call("counterparty_quality", buyer_id=buyer_id, buyer_name=buyer_name)
-        if not cpq.get("ready"):
-            notes.append(f"Counterparty data quality check: {'; '.join(cpq.get('issues', []))}")
-            emit("counterparty_check_failed", issues=cpq.get("issues", []))
-        else:
+        n = s["notice"]
+        res = await call("counterparty_quality", buyer_id=n.get("buyer_id"), buyer_name=n["notice"].get("buyer_name"))
+        if res.get("ready"):
             emit("counterparty_check_passed")
-        return {"cpq": cpq, "notes": notes}
+        else:
+            emit("counterparty_check_failed", issues=res.get("issues", []), error=res.get("error"))
+        return {"cpq": res}
 
     async def amendment(s: State):
         """Check for proper amendment handling (new releases vs overwrites)."""
         if "amendment" not in s["plan"]:
             return {"amendment": None}
-        notes = list(s["notes"])
-        amendment = await call("amendment_check", ocid=s["ocid"])
-        if amendment.get("has_amendments"):
-            for issue in amendment.get("issues", []):
-                notes.append(f"Amendment check: {issue}")
-            emit("amendment_detected", issues=amendment.get("issues", []))
+        res = await call("amendment_check", ocid=s["ocid"])
+        if res.get("has_amendments"):
+            emit("amendment_detected", issues=res.get("issues", []))
         else:
             emit("amendment_ok")
-        return {"amendment": amendment, "notes": notes}
+        return {"amendment": res}
 
     async def timeline(s: State):
         """Check for process timeline anomalies (decision window from deadline to award)."""
-        if "timeline" not in s["plan"]:
-            return {"timeline": None}
-        notes = list(s["notes"])
-        timeline = await call("process_timeline_check", ocid=s["ocid"])
-        if timeline.get("issues"):
-            for issue in timeline.get("issues", []):
-                notes.append(f"Timeline check: {issue}")
-            emit("timeline_anomaly", issues=timeline.get("issues", []), decision_window_days=timeline.get("decision_window_days"))
+        res = await call("process_timeline_check", ocid=s["ocid"])
+        days = res.get("decision_window_days")
+        if res.get("issues"):
+            emit("timeline_anomaly", issues=res["issues"], decision_window_days=days)
         else:
-            emit("timeline_ok", decision_window_days=timeline.get("decision_window_days"))
-        return {"timeline": timeline, "notes": notes}
+            emit("timeline_ok", decision_window_days=days)
+        return {"timeline": res}
 
     async def window(s: State):
         """Always runs (cheap, deterministic): how long was the tender open, against comparable tenders."""
@@ -291,29 +360,28 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
             return {}
         done, peers, wide = [], None, None
         situation = f"Buyer {s['hkey']}: {'; '.join(flags)}. Category: {s.get('hcat')}."
-        for i in range(MAX_INVEST_STEPS):
+        for step in range(1, MAX_INVEST_STEPS + 1):
             if not remaining:
                 break
             try:
-                out = await asyncio.to_thread(llm.complete_json, "investigate",
-                                              {"situation": situation, "allowed": remaining + ["stop"], "done": done})
+                out = await ask("investigate", {"situation": situation, "allowed": remaining + ["stop"], "done": done})
             except QuotaExhausted:
                 raise
             except Exception as e:
                 emit("investigate_error", error=repr(e)[:200])
                 break
-            is_obj = isinstance(out, dict)
-            tool = out.get("tool") if is_obj else None
-            if not is_obj or out.get("action") != "call" or tool not in remaining:
-                emit("investigate_stop", step=i + 1, reason=str(out.get("reason", ""))[:160] if is_obj else "invalid",
-                     rejected_tool=tool if tool not in (None, "stop") and tool not in remaining else None)
+            out = out if isinstance(out, dict) else {}
+            tool = out.get("tool")
+            if out.get("action") != "call" or tool not in remaining:
+                emit("investigate_stop", step=step, reason=str(out.get("reason", "")) [:160] if out else "invalid",
+                     rejected_tool=tool if tool not in (None, "stop") else None)
                 break
             remaining.remove(tool)
             done.append(tool)
-            emit("investigate_step", step=i + 1, tool=tool, why=str(out.get("reason", ""))[:200])
+            emit("investigate_step", step=step, tool=tool, why=str(out.get("reason", ""))[:200])
             if tool == "peer_baseline":
                 peers = await call("peer_baseline", buyer=s["hkey"], category=s["hcat"])
-            elif tool == "history_all_categories":
+            else:  # history_all_categories
                 wide = await call("buyer_award_history", buyer=s["hkey"])
         return {"peers": peers, "wide": wide}
 
@@ -330,7 +398,7 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
         attempt = s["attempt"] + 1
         emit("synthesize_attempt", attempt=attempt)
         try:
-            out = await asyncio.to_thread(llm.complete_json, "synthesize", {"evidence": s["evidence"], "feedback": s["feedback"]})
+            out = await ask("synthesize", {"evidence": s["evidence"], "feedback": s["feedback"]})
             if not isinstance(out, dict):
                 raise LLMError("synthesis was not a JSON object")
             raw = out.get("findings") if isinstance(out.get("findings"), list) else []
@@ -343,46 +411,7 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
             return {"attempt": attempt, "summary": "", "raw": []}
 
     async def verify(s: State):
-        by_id = {e["id"]: e for e in s["evidence"]}
-        accepted, rejected, seen = [], [], set()
-
-        def reject(finding, reason):
-            rejected.append({"finding": finding, "reason": reason})
-
-        for f in s["raw"]:
-            if not isinstance(f, dict):
-                reject(str(f)[:80], "finding is not an object")
-                continue
-            ids = f.get("evidence")
-            ids = [ids] if isinstance(ids, str) else ids
-            if not isinstance(ids, list) or not ids or not all(isinstance(i, str) and i in by_id for i in ids):
-                reject(f, "cites missing or unknown evidence")
-                continue
-            ids = list(dict.fromkeys(ids))
-            stmt = f.get("statement")
-            if not isinstance(stmt, str) or len(stmt.strip()) < 5:
-                reject(f, "statement missing or too short")
-                continue
-            if len(stmt) > MAX_STATEMENT:
-                reject(f, f"statement longer than {MAX_STATEMENT} characters")
-                continue
-            if has_verdict(stmt):
-                reject(f, "verdict or advice language; state facts and signals only")
-                continue
-            bad = ev.ungrounded_numbers(stmt, [by_id[i]["text"] for i in ids])
-            if bad:
-                reject(f, f"numbers not in cited evidence: {bad}")
-                continue
-            if stmt in seen:                       # the model repeated itself
-                continue
-            seen.add(stmt)
-            first = by_id[ids[0]]
-            sev = f.get("severity") if f.get("severity") in SEVERITIES else "info"
-            if sev == "signal" and not any(by_id[i]["signal"] for i in ids):
-                sev = "check"  # a model cannot raise a signal the data did not raise
-            kind = f.get("kind") if f.get("kind") in KINDS else first["kind"]
-            accepted.append({"kind": kind, "statement": stmt, "source_ocid": first["source_ocid"],
-                             "field_path": first["field_path"], "severity": sev, "evidence": ids})
+        accepted, rejected = check_findings(s["raw"], s["evidence"])
         best = accepted if len(accepted) >= len(s["best"]) else s["best"]
         emit("verify_result", attempt=s["attempt"], accepted=len(accepted), rejected=len(rejected),
              reasons=[r["reason"] for r in rejected][:5])
@@ -396,35 +425,23 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
             return "synthesize"
         return "file"
 
-    async def file_node(s: State):
-        evidence = s["evidence"]
-        findings, used_fb = s["best"], False
-        if not findings:  # deterministic floor, flagged loudly
-            by_id = {e["id"]: e for e in evidence}
-            findings = [{"kind": f["kind"], "statement": f["statement"], "source_ocid": by_id[f["evidence"][0]]["source_ocid"],
-                         "field_path": by_id[f["evidence"][0]]["field_path"], "severity": f["severity"], "evidence": list(f["evidence"])}
-                        for f in ev.template_findings(evidence)]
-            used_fb = True
-            emit("fallback_findings", n=len(findings), reason="model produced no grounded findings")
-
-        # The summary is model text too: it gets the same number and verdict checks as the findings.
+    def _checked_summary(s: State, evidence: list[dict]) -> str:
+        """The summary is model text too: it gets the same number and verdict checks as the findings."""
         summary = s.get("summary") or ""
-        if summary:
-            if ev.ungrounded_numbers(summary, [e["text"] for e in evidence]):
-                emit("summary_replaced", reason="numbers not in evidence")
-                summary = ""
-            elif has_verdict(summary):
-                emit("summary_replaced", reason="verdict or advice language")
-                summary = ""
-        if not summary:
-            summary = f"Readiness brief for {s['ocid']} built from {len(evidence)} sourced evidence items."
+        if summary and ev.ungrounded_numbers(summary, [e["text"] for e in evidence]):
+            emit("summary_replaced", reason="numbers not in evidence")
+            summary = ""
+        elif summary and has_verdict(summary):
+            emit("summary_replaced", reason="verdict or advice language")
+            summary = ""
+        return summary or f"Readiness brief for {s['ocid']} built from {len(evidence)} sourced evidence items."
 
+    def _provenance(s: State, evidence: list[dict], used_fb: bool) -> dict:
         roles: dict[str, str] = {}
-        for key, role in (("notice", "notice"), ("history", "history"), ("bench", "benchmark"),
-                          ("cpq", "counterparty"), ("amendment", "amendment"), ("window", "window"), ("peers", "peers"), ("wide", "history_wide")):
+        for key, role in ROLE_KEYS:
             if s.get(key):
                 roles.setdefault(prov.sha(s[key]), role)
-        provenance = {
+        return {
             "run": {
                 "run_id": run_id, "mode": s.get("mode"), "audience": s.get("audience"), "as_of": s.get("as_of"), "request": s.get("request"),
                 "llm": {"name": getattr(llm, "name", "?"), "model": getattr(llm, "model", None), "settings": getattr(llm, "settings", None)},
@@ -440,18 +457,28 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
             "evidence": evidence,
             "model_calls": list(getattr(llm, "trace", [])),
         }
+
+    async def file_node(s: State):
+        evidence = s["evidence"]
+        findings, used_fb = s.get("best") or [], False
+        if not findings:  # deterministic floor, flagged loudly
+            findings, used_fb = _template_to_findings(evidence), True
+            emit("fallback_findings", n=len(findings), reason="model produced no grounded findings")
+
+        summary = _checked_summary(s, evidence)
         filed = await call("file_brief", ocid=s["ocid"], summary=summary, findings=findings, as_of=s.get("as_of"),
-                           audience=s.get("audience", "buyer"), provenance=provenance)
+                           audience=s.get("audience", "buyer"), provenance=_provenance(s, evidence, used_fb))
         emit("filed", status=filed.get("status"), filing_id=filed.get("filing_id"), awaiting="named human approval")
         status = "awaiting_human_approval" if filed.get("status") == "pending_approval" else "not_filed"
         return {"status": status, "used_fallback": used_fb,
-                "result": {"filing": filed, "findings": findings, "rejected_last": s["rejected"], "summary": summary}}
+                "result": {"filing": filed, "findings": findings, "rejected_last": s.get("rejected", []), "summary": summary}}
 
     # ------------------------------------------------------------------ wiring
 
     g = StateGraph(State)
     for name, fn in [("intake", intake), ("plan", plan), ("notice", notice), ("history", history),
-                     ("benchmark", benchmark), ("counterparty", counterparty), ("amendment", amendment), ("timeline", timeline), ("window", window), ("documents", documents),
+                     ("benchmark", benchmark), ("counterparty", counterparty), ("amendment", amendment),
+                     ("timeline", timeline), ("window", window), ("documents", documents),
                      ("investigate", investigate), ("evidence", evidence_node),
                      ("synthesize", synthesize), ("verify", verify), ("file", file_node)]:
         g.add_node(name, fn)
@@ -459,25 +486,16 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
     g.add_conditional_edges("intake", lambda s: END if s.get("status") == "refused" else "plan")
     g.add_edge("plan", "notice")
     g.add_conditional_edges("notice", lambda s: END if s.get("status") in ("not_found", "tool_error", "refused_live") else "history")
-    for a, b in [("history", "benchmark"), ("benchmark", "counterparty"), ("counterparty", "amendment"), ("amendment", "timeline"), ("timeline", "window"), ("window", "documents"),
-                 ("documents", "investigate"), ("investigate", "evidence"), ("evidence", "synthesize"), ("synthesize", "verify")]:
+    chain = ["history", "benchmark", "counterparty", "amendment", "timeline", "window", "documents",
+             "investigate", "evidence", "synthesize", "verify"]
+    for a, b in zip(chain, chain[1:]):
         g.add_edge(a, b)
     g.add_conditional_edges("verify", after_verify, {"synthesize": "synthesize", "file": "file"})
     g.add_edge("file", END)
     return g.compile()
 
 
-def _has_documents(ocid: str, as_of: str | None) -> bool:
-    from .. import tools
-    try:
-        return bool(tools.get_tender_notice.__wrapped__(ocid, as_of).get("documents"))
-    except Exception:  # noqa: BLE001
-        return False
-
-
-def _leaves(eg: BaseExceptionGroup) -> list[BaseException]:
-    return [x for sub in eg.exceptions for x in (_leaves(sub) if isinstance(sub, BaseExceptionGroup) else [sub])]
-
+# --------------------------------------------------------------------------- entry points
 
 async def run_agent(ocid: str, request: str = "Prepare a tender readiness brief", as_of: str | None = None,
                     llm=None, mode: str = "loop", run_id: str | None = None, audience: str = "buyer", inproc: bool | None = None) -> dict:

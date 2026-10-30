@@ -54,6 +54,7 @@ def test_happy_path_queues_for_human_and_every_finding_is_grounded():
     assert r["findings"] and all(f["source_ocid"] and f["field_path"] for f in r["findings"])
     tools = logged_tools(r["run_id"])
     assert {"get_tender_notice", "buyer_award_history", "price_benchmark", "file_brief"} <= set(tools)
+    assert "process_timeline_check" in tools
 
 
 def test_refuses_award_request_and_calls_no_tools():
@@ -100,6 +101,20 @@ def test_persistently_ungrounded_model_never_gets_its_numbers_filed():
 def test_model_plan_failure_does_not_stop_the_run():
     r = run(llm=StubLLM("plan_error"))
     assert "plan_fallback" in kinds(r) and r["status"] == "awaiting_human_approval"
+    assert "process_timeline_check" in logged_tools(r["run_id"])
+
+
+def test_model_cannot_skip_the_required_timeline_check():
+    class SkipTimeline(StubLLM):
+        def complete_json(self, task, payload):
+            if task == "plan":
+                return {"checks": [], "rationale": "skip every optional check"}
+            return super().complete_json(task, payload)
+
+    r = run(llm=SkipTimeline())
+    plan = next(e for e in r["events"] if e["event"] == "plan")
+    assert plan["checks"] == ["timeline"]
+    assert "process_timeline_check" in logged_tools(r["run_id"])
 
 
 def test_model_cannot_raise_a_signal_the_data_did_not_raise():

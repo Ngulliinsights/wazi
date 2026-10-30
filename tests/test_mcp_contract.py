@@ -45,7 +45,7 @@ def test_a_forged_provenance_is_refused_by_the_real_server():
     async def go():
         async with mcp_session("forge-test") as s:
             res = await s.call_tool("file_brief", {"ocid": "ocds-eval-abv-target", "summary": "s", "as_of": "2025-05-01", "audience": "buyer",
-                "findings": [{"kind": "other", "statement": "A plain fact here", "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title"}],
+                "findings": [{"kind": "other", "statement": "A plain fact here", "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title", "evidence": ["E1"]}],
                 "provenance": {"tool_calls": [{"tool": "get_tender_notice", "args": {"ocid": "ocds-eval-abv-target", "as_of": "2025-05-01"}, "output_sha256": "0" * 64, "role": "notice"}]}})
             return json.loads(res.content[0].text)
     out = asyncio.run(go())
@@ -62,7 +62,8 @@ def test_full_stack_api_run_through_real_servers_then_verify_and_approve():
         fid = r["filing_id"]
         assert c.get(f"/api/filings/{fid}/verify").json()["verdict"] == "REPRODUCED"
         h = next(f["md_sha256"] for f in c.get("/api/filings").json() if f["filing_id"] == fid)
-        assert c.post(f"/api/filings/{fid}/approve", json={"approver": "Wanjiku Mwangi", "brief_sha256": h}).status_code == 200
+        assert c.post(f"/api/filings/{fid}/approve", json={"approver": "Wanjiku Mwangi", "brief_sha256": h,
+                                                           "role": "Procurement Officer", "date": "2026-10-30"}).status_code == 200
         assert c.get(f"/api/filings/{fid}/verify").json()["verdict"] == "REPRODUCED"      # still, after the decision
 
 

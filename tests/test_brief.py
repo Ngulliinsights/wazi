@@ -63,8 +63,8 @@ def test_signals_are_labelled_as_prompts_for_review_and_listed_first():
     md = brief("ocds-eval-abv-target")
     assert "Signal (worth a look, not proof)" in md
     r = tools.file_brief("ocds-eval-abv-target", "s", [
-        {"kind": "buyer_history", "statement": "A calm note here", "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title", "severity": "info"},
-        {"kind": "buyer_history", "statement": "A loud signal here", "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title", "severity": "signal"}])
+        {"kind": "buyer_history", "statement": "A calm note here", "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title", "evidence": ["E1"], "severity": "info"},
+        {"kind": "buyer_history", "statement": "A loud signal here", "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title", "evidence": ["E2"], "severity": "signal"}])
     out = (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text(encoding="utf-8")
     assert out.index("A loud signal here") < out.index("A calm note here")
 
@@ -90,12 +90,12 @@ def test_verdict_language_never_reaches_the_brief_even_with_a_valid_source(verdi
     md = (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text(encoding="utf-8")
     assert verdict not in md and not any(verdict == f["statement"] for f in r["findings"])
     # and the server enforces it too, independent of the agent's own check
-    out = tools.file_brief("ocds-eval-abv-target", "s", [{"kind": "other", "statement": verdict, "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title"}])
+    out = tools.file_brief("ocds-eval-abv-target", "s", [{"kind": "other", "statement": verdict, "source_ocid": "ocds-eval-abv-target", "field_path": "tender.title", "evidence": ["E1"]}])
     assert out["status"] == "not_filed"
 
 
 def test_facts_that_merely_contain_similar_words_are_not_blocked():
-    ok = {"kind": "other", "statement": "Bidders must submit a bid security of 50000 KES", "source_ocid": "ocds-eval-doc-ok", "field_path": "tender.documents[].url"}
+    ok = {"kind": "other", "statement": "Bidders must submit a bid security of 50000 KES", "source_ocid": "ocds-eval-doc-ok", "field_path": "tender.documents[].url", "evidence": ["E1"]}
     out = tools.file_brief("ocds-eval-abv-target", "s", [ok])
     assert out["status"] == "pending_approval"
 
@@ -103,5 +103,5 @@ def test_facts_that_merely_contain_similar_words_are_not_blocked():
 @pytest.mark.parametrize("fact", ["Bidders must submit a bid security of 50000 KES", "A site visit is recommended before submitting bids",
                                   "Applicants must apply through the portal before the deadline"])
 def test_requirements_quoted_from_the_tender_are_facts_not_advice(fact):
-    out = tools.file_brief("ocds-eval-abv-target", "s", [{"kind": "other", "statement": fact, "source_ocid": "ocds-eval-doc-ok", "field_path": "tender.documents[].url"}])
+    out = tools.file_brief("ocds-eval-abv-target", "s", [{"kind": "other", "statement": fact, "source_ocid": "ocds-eval-doc-ok", "field_path": "tender.documents[].url", "evidence": ["E1"]}])
     assert out["status"] == "pending_approval", fact

@@ -67,7 +67,8 @@ def test_price_benchmark_low_confidence():
 
 
 def test_verifier_rejects_unsourced_unknown_and_accusatory(loaded):
-    good = {"kind": "deadline", "statement": "Deadline recorded in notice", "source_ocid": "ocds-synth-0001", "field_path": "tender.tenderPeriod.endDate"}
+    good = {"kind": "deadline", "statement": "Deadline recorded in notice", "source_ocid": "ocds-synth-0001",
+            "field_path": "tender.tenderPeriod.endDate", "evidence": ["E1"]}
     bad = [{"kind": "price", "statement": "Price looks high", "source_ocid": "", "field_path": ""},
            {"kind": "price", "statement": "Price looks high", "source_ocid": "ocds-nope", "field_path": "awards[].value.amount"},
            {**good, "statement": "Supplier committed fraud"}]
@@ -77,7 +78,7 @@ def test_verifier_rejects_unsourced_unknown_and_accusatory(loaded):
 
 def _finding(**kw):
     return {"kind": "deadline", "statement": "Deadline recorded in notice", "source_ocid": "ocds-synth-0001",
-            "field_path": "tender.tenderPeriod.endDate", **kw}
+            "field_path": "tender.tenderPeriod.endDate", "evidence": ["E1"], **kw}
 
 
 def test_file_brief_only_queues_and_gate_requires_named_human():
@@ -88,13 +89,13 @@ def test_file_brief_only_queues_and_gate_requires_named_human():
     assert not (config.OUTBOX / "filed" / f"{fid}.md").exists()
     for who in ("", "agent", "Claude", "x"):
         with pytest.raises(PermissionError):
-            gate.approve(fid, who)
-    rec = gate.approve(fid, "Wanjiku Mwangi")
+            gate.approve(fid, who, r["md_sha256"], "Procurement Officer", "2026-10-30")
+    rec = gate.approve(fid, "Wanjiku Mwangi", r["md_sha256"], "Procurement Officer", "2026-10-30")
     assert rec["approver"] == "Wanjiku Mwangi" and (config.OUTBOX / "filed" / f"{fid}.md").exists()
 
 
 def test_file_brief_with_no_sourced_findings_files_nothing():
-    r = tools.file_brief("ocds-synth-0001", "x", [{"kind": "price", "statement": "unsourced claim here", "source_ocid": "", "field_path": ""}])
+    r = tools.file_brief("ocds-synth-0001", "x", [{"kind": "price", "statement": "unsourced claim here", "source_ocid": "", "field_path": "", "evidence": ["E1"]}])
     assert r["status"] == "not_filed"
 
 

@@ -2,7 +2,7 @@
 import json
 import re
 import sqlite3
-from typing import Literal
+from typing import Literal, get_args
 
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
@@ -10,6 +10,10 @@ from .textsafe import normalize, oneline
 
 MAX_STATEMENT, MAX_FINDINGS = 1000, 60
 MAX_REF = 200                      # longest accepted source_ocid / field_path (the API caps an ocid at the same length)
+FindingKind = Literal["deadline", "eligibility", "price", "buyer_history", "data_quality", "other"]
+FindingSeverity = Literal["info", "check", "signal"]
+FINDING_KINDS = get_args(FindingKind)
+FINDING_SEVERITIES = get_args(FindingSeverity)
 
 # --------------------------------------------------------------------------- citations
 
@@ -88,12 +92,12 @@ def has_accusation(text: str) -> bool:
 
 
 class Finding(BaseModel):
-    kind: Literal["deadline", "eligibility", "price", "buyer_history", "data_quality", "other"]
+    kind: FindingKind
     statement: str = Field(min_length=5, max_length=MAX_STATEMENT)
     source_ocid: str = Field(min_length=3, max_length=MAX_REF)
     field_path: str = Field(min_length=3, max_length=MAX_REF, description="e.g. tender.tenderPeriod.endDate")
-    evidence: list[str] = Field(default_factory=list, description="ids of the evidence items this finding rests on")
-    severity: Literal["info", "check", "signal"] = "info"  # 'signal' = worth a look, never proof
+    evidence: list[str] = Field(min_length=1, description="ids of the evidence items this finding rests on")
+    severity: FindingSeverity = "info"  # 'signal' = worth a look, never proof
 
     @field_validator("statement", "source_ocid", "field_path", mode="before")
     @classmethod
@@ -142,6 +146,9 @@ def verify_findings(raw: list[dict], conn: sqlite3.Connection) -> tuple[list[Fin
             continue
         except TypeError as e:
             reject(item, str(e)[:200])
+            continue
+        if not f.evidence or any(not item_id.strip() for item_id in f.evidence):
+            reject(item, "a finding must cite at least one evidence item")
             continue
         if f.source_ocid not in known:
             known[f.source_ocid] = conn.execute("SELECT 1 FROM tenders WHERE ocid=?", (f.source_ocid,)).fetchone() is not None
