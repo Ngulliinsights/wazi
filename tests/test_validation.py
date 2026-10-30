@@ -1,8 +1,8 @@
 """Tests for independent middle-office validation module."""
 import pytest
 
-from bidbox import validation
-from bidbox.store import connect, load_ocds
+from wazi import validation
+from wazi.store import connect, load_ocds
 from pathlib import Path
 
 SAMPLE = Path(__file__).resolve().parent.parent / "data" / "sample_ocds.json"

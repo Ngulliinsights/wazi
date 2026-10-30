@@ -60,7 +60,7 @@ Strategic direction validated in ADR 001:
   - Every number in a finding must appear verbatim (or as words) in its cited evidence
   - `file_brief` replays every tool call at filing time; if any output differs, the brief is refused
   - Full audit log (`var/audit.jsonl`) records every tool call with inputs, outputs, timestamps, run ID
-  - `python -m bidbox.cli verify <id>` independently re-derives evidence and checks grounding
+  - `python -m wazi.cli verify <id>` independently re-derives evidence and checks grounding
 - **Still unresolved:** Meaning-level hallucination (a fluent sentence using correct numbers but drawing the wrong conclusion) is not caught by number grounding.
 
 ### Legal: The committee must decide; the agent must never award
@@ -90,7 +90,7 @@ Strategic direction validated in ADR 001:
 - **How Wazi currently handles it:**
   - Default model client is `OllamaLLM` talking to localhost:11434 (local open-weights model)
   - Every filing records `"remote": false` in the manifest when the endpoint is local
-  - Free-tier OpenAI-compatible endpoints are supported for development only (`BIDBOX_LLM_API=openai`), and every brief records `"remote": true`
+  - Free-tier OpenAI-compatible endpoints are supported for development only (`WAZI_LLM_API=openai`), and every brief records `"remote": true`
 - **Still unresolved:** No legal review has confirmed that local model execution satisfies specific Kenyan data sovereignty requirements. The model weights themselves are downloaded from the internet.
 
 ### Adoption: Committees may not use a tool outside their existing systems
@@ -114,9 +114,9 @@ Strategic direction validated in ADR 001:
 - **Objection:** If the agent is slow or expensive, it won't be used.
 - **Why plausible:** Manual tender readiness checks take days; a tool must be faster and cheaper.
 - **How Wazi currently handles it:**
-  - `python -m bidbox.bench --model qwen3:4b --runs 2` measures seconds per run, tokens/sec, template-fallback rate
+  - `python -m wazi.bench --model qwen3:4b --runs 2` measures seconds per run, tokens/sec, template-fallback rate
   - Audit log records `model_seconds`, `tokens_in`, `tokens_out`, `llm_calls` per run
-  - Free-tier mode has `BIDBOX_RPM`, `BIDBOX_MAX_CALLS`, `BIDBOX_MAX_TOKENS` budgets
+  - Free-tier mode has `WAZI_RPM`, `WAZI_MAX_CALLS`, `WAZI_MAX_TOKENS` budgets
 - **Still unresolved:** **Not yet measured** against a real 26-day manual process. The `bench` command has been run locally (qwen3:4b on RTX 3050 Ti 4 GB: ~60–120 s per run), but no practitioner has timed their current process against the agent.
 
 ---
@@ -164,7 +164,7 @@ Brief validation has been performed via practitioner research (see ADR 001). Key
 | Model cannot invent numbers that get filed | **Verified** | `tests/test_agent.py::test_ungrounded_first_attempt_is_rejected_then_retry_recovers`, `test_persistently_ungrounded_model_never_gets_its_numbers_filed` |
 | Approval gate requires exact fingerprint + named human | **Verified** | `tests/test_backend.py`, `tests/test_api.py::test_gate_over_http` |
 | Local model runs without network | **Verified** | `OllamaLLM` defaults to `http://localhost:11434`; `is_remote()` returns `False` for localhost |
-| Borrowed fetch server handles robots.txt, redirects, truncation | **Verified** | `bidbox/agent/fetcher.py` calls `mcp_server_fetch` in `raw` mode; tests in `test_fetch_mcp.py` |
+| Borrowed fetch server handles robots.txt, redirects, truncation | **Verified** | `wazi/agent/fetcher.py` calls `mcp_server_fetch` in `raw` mode; tests in `test_fetch_mcp.py` |
 | Data quality issues (outliers, missing fields) are reported, not guessed | **Verified** | `store.py` load counts; brief includes `data_quality` findings |
 | Joint ventures counted correctly | **Verified** | `tests/test_joint_ventures.py` |
 | Scope guard refuses award requests | **Verified** | `tests/test_agent.py::test_refuses_award_request_and_calls_no_tools` |

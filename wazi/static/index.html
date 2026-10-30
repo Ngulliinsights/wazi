@@ -110,7 +110,7 @@ const say={intake:e=>'Read request for '+e.ocid,refused:e=>['Refused: '+e.reason
  investigate_step:e=>'Testing the signal: '+e.tool,investigate_stop:e=>'Investigation stopped',evidence_built:e=>'Built '+e.n+' sourced evidence items',
  synthesize_attempt:e=>'Writing findings (attempt '+e.attempt+')',verify_result:e=>['Checked findings: '+e.accepted+' accepted, '+e.rejected+' rejected',e.rejected?'bad':'ok'],
  fallback_findings:e=>['Model gave nothing grounded; used template findings','bad'],filed:e=>['Queued for human approval','ok'],not_found:e=>['Tender not found','bad']};
-const END={refused_live:'This tender is still open, so Bid Box will not work on it. It only prepares briefs on closed tenders and synthetic data.',refused:'Bid Box cannot answer that. It reports sourced facts and signals; it does not award, advise on bidding or judge wrongdoing.',
+const END={refused_live:'This tender is still open, so Wazi will not work on it. It only prepares briefs on closed tenders and synthetic data.',refused:'Wazi cannot answer that. It reports sourced facts and signals; it does not award, advise on bidding or judge wrongdoing.',
  not_found:'That tender is not in the loaded data.',quota_exhausted:'The model quota is used up. Try again later or use a local model.',timeout:'The model took too long. Try again or use a smaller local model.',tool_error:'A data lookup failed.',error:'Something went wrong.'};
 function line(e){const f=say[e.event];let r=f?f(e):e.event.replace(/_/g,' '),c='';if(Array.isArray(r)){c=r[1];r=r[0]}
  const d=document.createElement('div');d.className=c;d.title=JSON.stringify(e).slice(0,400);
@@ -120,7 +120,7 @@ const aud=()=>$('aud-sup').checked?'supplier':'buyer';
 function save(){try{localStorage.setItem('bb',JSON.stringify({a:aud(),m:$('mode').value}))}catch(e){}}
 function restore(){try{const s=JSON.parse(localStorage.getItem('bb')||'{}');if(s.a==='supplier')$('aud-sup').checked=true;if(s.m)$('mode').value=s.m}catch(e){}}
 function showSel(){const t=T[$('tender').value],s=$('sel');if(!t){s.className='sel';s.textContent=Object.keys(T).length?'Pick a tender to see its details.':'No tenders match.';$('go').disabled=true;return}
- s.className='sel'+(t.live?' live':'');s.textContent=t.live?'This tender is still open, so Bid Box will refuse it (it only works on closed tenders and synthetic data).':[t.title,t.buyer_name||t.buyer_id,t.category,t.deadline?'deadline '+String(t.deadline).slice(0,10):'no deadline recorded'].filter(Boolean).join(' · ');
+ s.className='sel'+(t.live?' live':'');s.textContent=t.live?'This tender is still open, so Wazi will refuse it (it only works on closed tenders and synthetic data).':[t.title,t.buyer_name||t.buyer_id,t.category,t.deadline?'deadline '+String(t.deadline).slice(0,10):'no deadline recorded'].filter(Boolean).join(' · ');
  $('go').disabled=!!t.live}
 async function j(u,o){const r=await fetch(u,o);const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.detail||r.status);return b}
 async function load(){const t=await j('/api/tenders?q='+encodeURIComponent($('q').value));T={};t.forEach(x=>T[x.ocid]=x);
@@ -150,5 +150,5 @@ $('ok').onclick=()=>decide('approve');$('no').onclick=()=>decide('reject');$('wh
 $('q').onkeydown=e=>{if(e.key==='ArrowDown'){e.preventDefault();$('tender').focus()}};
 $('print').onclick=()=>window.print();$('copy').onclick=()=>{try{navigator.clipboard.writeText(fhash||'');$('gmsg').className='ok';$('gmsg').textContent='Fingerprint copied.'}catch(e){}};
 (async()=>{restore();try{const c=await j('/api/config');$('asof').value=c.as_of;$('llm').textContent='model: '+(c.llm==='stub'?'STUB (demo only, not a real model)':c.llm);await load()}
- catch(e){$('msg').className='bad';$('msg').textContent='Cannot reach the Bid Box server ('+e.message+'). Start it with: python run.py'}})();
+ catch(e){$('msg').className='bad';$('msg').textContent='Cannot reach the Wazi server ('+e.message+'). Start it with: python run.py'}})();
 </script></body></html>

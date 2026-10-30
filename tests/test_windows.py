@@ -7,11 +7,11 @@ from pathlib import Path
 
 import pytest
 
-from bidbox import config, store, tools
-from bidbox.agent import run_agent
-from bidbox.agent.llm import StubLLM
-from bidbox.evals import build_fixture_releases, groundedness
-from bidbox.store import connect, load_ocds
+from wazi import config, store, tools
+from wazi.agent import run_agent
+from wazi.agent.llm import StubLLM
+from wazi.evals import build_fixture_releases, groundedness
+from wazi.store import connect, load_ocds
 
 SAMPLE = Path(__file__).resolve().parent.parent / "data" / "sample_ocds.json"
 END = "2025-06-01T12:00:00Z"

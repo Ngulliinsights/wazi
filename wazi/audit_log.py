@@ -16,8 +16,8 @@ from datetime import datetime, timezone
 from .config import LOG_PATH
 
 MAX_OUT = 20000
-RUN_ID = os.environ.get("BIDBOX_RUN_ID") or uuid.uuid4().hex[:12]
-run_id_var: contextvars.ContextVar[str | None] = contextvars.ContextVar("bidbox_run_id", default=None)   # set by the in-process test session
+RUN_ID = os.environ.get("WAZI_RUN_ID") or uuid.uuid4().hex[:12]
+run_id_var: contextvars.ContextVar[str | None] = contextvars.ContextVar("wazi_run_id", default=None)   # set by the in-process test session
 
 _LOCK = threading.Lock()
 _APPEND = os.O_RDWR | os.O_APPEND | os.O_CREAT | getattr(os, "O_BINARY", 0)      # O_BINARY: no \n -> \r\n rewriting on Windows; RDWR: to peek at the last byte

@@ -9,9 +9,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
-from bidbox.agent import run_agent
-from bidbox.agent.llm import LLMError, OllamaLLM, StubLLM, extract_json
-from bidbox.store import connect, load_ocds
+from wazi.agent import run_agent
+from wazi.agent.llm import LLMError, OllamaLLM, StubLLM, extract_json
+from wazi.store import connect, load_ocds
 
 from pathlib import Path
 

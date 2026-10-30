@@ -6,10 +6,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
-from bidbox import config
-from bidbox.agent import run_agent
-from bidbox.agent.llm import StubLLM
-from bidbox.store import connect, load_ocds
+from wazi import config
+from wazi.agent import run_agent
+from wazi.agent.llm import StubLLM
+from wazi.store import connect, load_ocds
 
 PAGES = {
     "/ok.html": "<html><body><p>Bidders must hold a valid tax compliance certificate and a bid security of 50000 KES.</p></body></html>",

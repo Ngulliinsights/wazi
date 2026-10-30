@@ -1,9 +1,9 @@
-"""Thin HTTP layer for the one-page UI. Run: python -m bidbox.api   (BIDBOX_LLM=stub for no model)
+"""Thin HTTP layer for the one-page UI. Run: python -m wazi.api   (WAZI_LLM=stub for no model)
 
 The approval gate is reachable only here, by a person; the agent has no path to it.
 There is no authentication: the server binds to 127.0.0.1 and that is the access control. Do not expose it.
 
-Environment: BIDBOX_LLM (ollama|stub), BIDBOX_AS_OF, BIDBOX_MAX_RUNS (default 1), BIDBOX_RUN_TIMEOUT (seconds, default 900), PORT.
+Environment: WAZI_LLM (ollama|stub), WAZI_AS_OF, WAZI_MAX_RUNS (default 1), WAZI_RUN_TIMEOUT (seconds, default 900), PORT.
 """
 import asyncio
 import os
@@ -43,11 +43,11 @@ _SEM: tuple | None = None
 
 
 def llm_name() -> str:
-    return os.environ.get("BIDBOX_LLM", "ollama")
+    return os.environ.get("WAZI_LLM", "ollama")
 
 
 def default_as_of() -> str:
-    return os.environ.get("BIDBOX_AS_OF", date.today().isoformat())
+    return os.environ.get("WAZI_AS_OF", date.today().isoformat())
 
 
 def make_llm():
@@ -59,7 +59,7 @@ def _sem() -> asyncio.Semaphore:
     global _SEM
     loop = asyncio.get_running_loop()
     if _SEM is None or _SEM[0] is not loop:
-        _SEM = (loop, asyncio.Semaphore(int(os.environ.get("BIDBOX_MAX_RUNS", "1"))))
+        _SEM = (loop, asyncio.Semaphore(int(os.environ.get("WAZI_MAX_RUNS", "1"))))
     return _SEM[1]
 
 
@@ -125,7 +125,7 @@ def _prune_runs() -> None:
 
 async def _go(run_id: str, req: RunReq) -> None:
     try:
-        timeout = float(os.environ.get("BIDBOX_RUN_TIMEOUT", "900"))
+        timeout = float(os.environ.get("WAZI_RUN_TIMEOUT", "900"))
         async with _sem():
             RUNS[run_id]["status"] = "running"
             res = await asyncio.wait_for(

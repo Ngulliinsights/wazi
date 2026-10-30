@@ -1,6 +1,6 @@
 """Tests for process timeline check (decision window from deadline to award)."""
 import pytest
-from bidbox import tools
+from wazi import tools
 
 
 def test_process_timeline_check_not_found():

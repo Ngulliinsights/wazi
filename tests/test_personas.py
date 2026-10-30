@@ -8,11 +8,11 @@ from pathlib import Path
 
 import pytest
 
-from bidbox import config, gate, tools
-from bidbox.agent import run_agent
-from bidbox.agent.llm import StubLLM
-from bidbox.evals import build_fixture_releases
-from bidbox.store import connect, load_ocds
+from wazi import config, gate, tools
+from wazi.agent import run_agent
+from wazi.agent.llm import StubLLM
+from wazi.evals import build_fixture_releases
+from wazi.store import connect, load_ocds
 
 SAMPLE = Path(__file__).resolve().parent.parent / "data" / "sample_ocds.json"
 

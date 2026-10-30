@@ -7,9 +7,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
-from bidbox import config
-from bidbox.agent import run_agent
-from bidbox.agent.llm import CACHE, QUOTA, LLMError, OllamaLLM, QuotaExhausted, StubLLM, is_remote
+from wazi import config
+from wazi.agent import run_agent
+from wazi.agent.llm import CACHE, QUOTA, LLMError, OllamaLLM, QuotaExhausted, StubLLM, is_remote
 
 OBJ = '{"checks":["history","benchmark"],"rationale":"r"}'
 
@@ -17,8 +17,8 @@ OBJ = '{"checks":["history","benchmark"],"rationale":"r"}'
 @pytest.fixture(scope="module", autouse=True)
 def _data(tmp_path_factory):
     from pathlib import Path
-    from bidbox.evals import build_fixture_releases
-    from bidbox.store import connect, load_ocds
+    from wazi.evals import build_fixture_releases
+    from wazi.store import connect, load_ocds
     f = tmp_path_factory.mktemp("d") / "fx.json"; f.write_text(json.dumps({"releases": build_fixture_releases()}), encoding="utf-8")
     c = connect(); load_ocds(Path(__file__).resolve().parent.parent / "data" / "sample_ocds.json", c); load_ocds(f, c)
 
@@ -64,7 +64,7 @@ def test_the_key_never_appears_in_settings_or_the_recorded_trace(srv):
 
 def test_an_unauthorised_key_gives_a_clear_message_and_is_not_retried(srv):
     srv["script"] = [(401, {"error": "bad key"})]; c = client(srv, max_retries=3)
-    with pytest.raises(LLMError, match="authentication failed.*BIDBOX_API_KEY"): ask(c)
+    with pytest.raises(LLMError, match="authentication failed.*WAZI_API_KEY"): ask(c)
     assert len(srv["seen"]) == 1 and c.slept == []
 
 
@@ -123,7 +123,7 @@ def test_call_and_token_budgets_stop_the_run_before_the_network(srv):
 
 # ---------- the cache: repeat evals cost nothing
 def test_repeated_prompts_are_served_from_the_cache_with_no_quota(srv, tmp_path, monkeypatch):
-    monkeypatch.setenv("BIDBOX_LLM_CACHE", str(tmp_path / "c.jsonl")); QUOTA.configure(max_calls=1)
+    monkeypatch.setenv("WAZI_LLM_CACHE", str(tmp_path / "c.jsonl")); QUOTA.configure(max_calls=1)
     srv["script"] = [native()]; a = client(srv); ask(a)
     b = client(srv); out = ask(b); ask(b)                          # a NEW client, same prompt: still free
     assert out["checks"] and len(srv["seen"]) == 1 and QUOTA.calls == 1
@@ -131,7 +131,7 @@ def test_repeated_prompts_are_served_from_the_cache_with_no_quota(srv, tmp_path,
 
 
 def test_cache_misses_on_a_different_model_or_prompt_and_survives_corruption(srv, tmp_path, monkeypatch):
-    path = tmp_path / "c.jsonl"; monkeypatch.setenv("BIDBOX_LLM_CACHE", str(path)); srv["script"] = [native(), native(), native()]
+    path = tmp_path / "c.jsonl"; monkeypatch.setenv("WAZI_LLM_CACHE", str(path)); srv["script"] = [native(), native(), native()]
     ask(client(srv))
     other = OllamaLLM("other-model", srv["url"]); other._sleep = lambda s: None; ask(other)
     client(srv).complete_json("plan", {"facts": "a different question"})
@@ -142,14 +142,14 @@ def test_cache_misses_on_a_different_model_or_prompt_and_survives_corruption(srv
 
 
 def test_readonly_cache_guarantees_no_network_and_replays_exactly(srv, tmp_path, monkeypatch):
-    monkeypatch.setenv("BIDBOX_LLM_CACHE", str(tmp_path / "c.jsonl")); srv["script"] = [native()]; ask(client(srv))
-    monkeypatch.setenv("BIDBOX_LLM_CACHE_MODE", "readonly")
+    monkeypatch.setenv("WAZI_LLM_CACHE", str(tmp_path / "c.jsonl")); srv["script"] = [native()]; ask(client(srv))
+    monkeypatch.setenv("WAZI_LLM_CACHE_MODE", "readonly")
     dead = OllamaLLM("m", "http://127.0.0.1:1", timeout=1); assert ask(dead)["checks"]                    # hit: works with the server gone
     with pytest.raises(LLMError, match="readonly"): dead.complete_json("plan", {"facts": "never asked before"})   # miss: refuses, never touches the network
 
 
 def test_an_unparseable_reply_is_never_cached(srv, tmp_path, monkeypatch):
-    path = tmp_path / "c.jsonl"; monkeypatch.setenv("BIDBOX_LLM_CACHE", str(path)); srv["script"] = [native("this is not json"), native()]
+    path = tmp_path / "c.jsonl"; monkeypatch.setenv("WAZI_LLM_CACHE", str(path)); srv["script"] = [native("this is not json"), native()]
     c = client(srv)
     with pytest.raises(LLMError): ask(c)
     assert not path.exists() or path.read_text(encoding="utf-8") == ""
@@ -190,7 +190,7 @@ def test_quota_exhaustion_in_any_step_stops_the_run_and_files_nothing(task):
 def test_the_api_reports_a_used_up_quota_as_its_own_status_not_a_vague_error(monkeypatch):
     import time as _t
     from fastapi.testclient import TestClient
-    from bidbox import api
+    from wazi import api
     class Q(StubLLM):
         def complete_json(self, t, p): raise QuotaExhausted("daily quota used up")
     monkeypatch.setattr(api, "make_llm", lambda: Q("invest_all"))

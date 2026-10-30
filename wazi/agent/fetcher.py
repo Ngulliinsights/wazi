@@ -39,7 +39,7 @@ _SPACE = re.compile(r"\s+")
 
 
 def _allow_private() -> bool:
-    return os.environ.get("BIDBOX_ALLOW_PRIVATE_FETCH") == "1"
+    return os.environ.get("WAZI_ALLOW_PRIVATE_FETCH") == "1"
 
 
 def _server_env() -> dict[str, str]:
@@ -89,7 +89,7 @@ def url_allowed(url: str) -> tuple[bool, str]:
 
     Refused: non-http(s) schemes, obvious local host names, and literal private, loopback, link-local,
     reserved, multicast, unspecified or otherwise non-global IPs (including IPv4-mapped IPv6 and
-    legacy numeric spellings). Set BIDBOX_ALLOW_PRIVATE_FETCH=1 for tests.
+    legacy numeric spellings). Set WAZI_ALLOW_PRIVATE_FETCH=1 for tests.
     Not covered here (the fetch server applies its own check): a public name that resolves to a private
     address, or a redirect to one.
     """

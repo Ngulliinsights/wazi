@@ -11,11 +11,11 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from bidbox import api, config, gate, provenance, store, tools
-from bidbox.agent import run_agent
-from bidbox.agent.llm import StubLLM
-from bidbox.evals import build_fixture_releases
-from bidbox.store import connect, load_ocds
+from wazi import api, config, gate, provenance, store, tools
+from wazi.agent import run_agent
+from wazi.agent.llm import StubLLM
+from wazi.evals import build_fixture_releases
+from wazi.store import connect, load_ocds
 
 ROOT = Path(__file__).resolve().parent.parent
 SAMPLE = ROOT / "data" / "sample_ocds.json"
@@ -234,7 +234,7 @@ def test_api_exposes_fingerprints_rejects_stale_hashes_and_serves_verification()
 
 
 def test_cli_shows_verifies_and_refuses_unfingerprinted_or_wrong_decisions():
-    fid = fid_ok(); run = lambda *a: subprocess.run([sys.executable, "-m", "bidbox.cli", *a], capture_output=True, text=True, cwd=ROOT)
+    fid = fid_ok(); run = lambda *a: subprocess.run([sys.executable, "-m", "wazi.cli", *a], capture_output=True, text=True, cwd=ROOT)
     shown = run("show", fid); h = gate.brief_sha256(fid)
     assert shown.returncode == 0 and h in shown.stdout and "BRIEF FINGERPRINT" in shown.stdout
     assert "VERDICT: REPRODUCED" in run("verify", fid).stdout

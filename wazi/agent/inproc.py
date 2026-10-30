@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 from .. import audit_log, tools
 
-# exactly what bidbox.server exposes (tests/test_mcp_contract.py asserts this equals the real server's tool list):
+# exactly what wazi.server exposes (tests/test_mcp_contract.py asserts this equals the real server's tool list):
 TOOLS = ("get_tender_notice", "buyer_award_history", "price_benchmark", "peer_baseline", "window_baseline",
          "counterparty_quality", "amendment_check", "aged_items_check", "budget_exposure", "ppada_date_order_check",
          "single_bidder_check", "termination_check", "publication_quality_check", "process_timeline_check", "file_brief")

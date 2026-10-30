@@ -5,7 +5,7 @@ import os, pathlib, shutil, subprocess, sys, tempfile
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FAST = "--fast" in sys.argv
 rd = lambda n: (ROOT / n).read_text(encoding="utf-8", errors="ignore") if (ROOT / n).exists() else ""
-src = "\n".join(p.read_text(errors="ignore") for p in (ROOT / "bidbox").rglob("*.py"))
+src = "\n".join(p.read_text(errors="ignore") for p in (ROOT / "wazi").rglob("*.py"))
 checks = []
 
 
@@ -41,12 +41,12 @@ check("no emails or phone numbers in data (personal-data rule)", not re.search(r
 
 tmp = pathlib.Path(tempfile.mkdtemp(prefix="preflight_"))
 shutil.copytree(ROOT, tmp / "repo", ignore=shutil.ignore_patterns("var", ".venv", "__pycache__", ".pytest_cache", "*.zip"))
-env = {**os.environ, "BIDBOX_HOME": str(tmp / "home"), "PYTHONDONTWRITEBYTECODE": "1"}
+env = {**os.environ, "WAZI_HOME": str(tmp / "home"), "PYTHONDONTWRITEBYTECODE": "1"}
 (tmp / "home").mkdir()
-for cmd in (["-m", "bidbox.cli", "load"], ["-m", "bidbox.cli", "audit"]):
+for cmd in (["-m", "wazi.cli", "load"], ["-m", "wazi.cli", "audit"]):
     r = subprocess.run([sys.executable, *cmd], cwd=tmp / "repo", env=env, capture_output=True, text=True)
-    check("clean copy runs: bidbox " + cmd[-1], r.returncode == 0, r.stderr[-150:])
-r = subprocess.run([sys.executable, "-m", "bidbox.agent", "ocds-synth-0001", "--llm", "stub", "--as-of", "2026-01-01"],
+    check("clean copy runs: wazi " + cmd[-1], r.returncode == 0, r.stderr[-150:])
+r = subprocess.run([sys.executable, "-m", "wazi.agent", "ocds-synth-0001", "--llm", "stub", "--as-of", "2026-01-01"],
                    cwd=tmp / "repo", env=env, capture_output=True, text=True)
 check("clean copy runs: agent end to end (stub)", '"status": "awaiting_human_approval"' in r.stdout, r.stderr[-150:])
 if not FAST:

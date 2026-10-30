@@ -5,7 +5,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
-from bidbox.agent.llm import LLMError, OllamaLLM
+from wazi.agent.llm import LLMError, OllamaLLM
 
 OBJ = '{"checks":["history","benchmark"],"rationale":"r"}'
 
@@ -85,8 +85,8 @@ def test_openai_compatible_path_still_works_and_only_qwen3_gets_the_soft_switch(
 
 
 def test_bench_script_measures_and_projects_without_a_model():
-    from bidbox import bench, evals
-    from bidbox.agent.llm import StubLLM
+    from wazi import bench, evals
+    from wazi.agent.llm import StubLLM
     srv = evals.setup_data()
     try:
         res = bench.bench(lambda: StubLLM("invest_all"), runs=1, warm=False)

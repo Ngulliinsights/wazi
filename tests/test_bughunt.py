@@ -12,12 +12,12 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from bidbox import api, audit_log, config, gate, tools
-from bidbox.agent import evidence as ev, fetcher, run_agent
-from bidbox.agent.llm import StubLLM
-from bidbox.evals import build_fixture_releases
-from bidbox.findings import has_verdict
-from bidbox.store import connect, load_ocds
+from wazi import api, audit_log, config, gate, tools
+from wazi.agent import evidence as ev, fetcher, run_agent
+from wazi.agent.llm import StubLLM
+from wazi.evals import build_fixture_releases
+from wazi.findings import has_verdict
+from wazi.store import connect, load_ocds
 
 ROOT = Path(__file__).resolve().parent.parent
 SAMPLE = ROOT / "data" / "sample_ocds.json"
@@ -142,7 +142,7 @@ def test_injection_and_scope_guards_survive_zero_width_and_fullwidth_tricks():
 @pytest.mark.parametrize("url", ["http://127.0.0.1:8000/x", "http://localhost/x", "http://10.0.0.5/a", "http://192.168.1.1/", "http://169.254.169.254/latest/meta-data",
                                  "http://[::1]/x", "http://printer.local/", "http://db.internal/x", "file:///etc/passwd", "ftp://example.org/x", "gopher://x", "http:///nohost"])
 def test_fetch_policy_refuses_local_private_and_non_web_urls(url, monkeypatch):
-    monkeypatch.delenv("BIDBOX_ALLOW_PRIVATE_FETCH", raising=False)
+    monkeypatch.delenv("WAZI_ALLOW_PRIVATE_FETCH", raising=False)
     ok, why = fetcher.url_allowed(url)
     assert not ok and why, url
     res = asyncio.run(fetcher.read_document(None, url))            # session=None: it must refuse BEFORE touching any server
@@ -150,9 +150,9 @@ def test_fetch_policy_refuses_local_private_and_non_web_urls(url, monkeypatch):
 
 
 def test_fetch_policy_allows_public_web_and_has_a_test_override(monkeypatch):
-    monkeypatch.delenv("BIDBOX_ALLOW_PRIVATE_FETCH", raising=False)
+    monkeypatch.delenv("WAZI_ALLOW_PRIVATE_FETCH", raising=False)
     assert fetcher.url_allowed("https://tenders.go.ke/docs/a.pdf")[0] and fetcher.url_allowed("http://93.184.216.34/x")[0]
-    monkeypatch.setenv("BIDBOX_ALLOW_PRIVATE_FETCH", "1")
+    monkeypatch.setenv("WAZI_ALLOW_PRIVATE_FETCH", "1")
     assert fetcher.url_allowed("http://127.0.0.1/x")[0]
 
 
@@ -220,14 +220,14 @@ def _wait(c, rid, t=40):
 
 
 def test_api_run_timeout_ends_the_run_with_a_reason(monkeypatch):
-    monkeypatch.setattr(api, "make_llm", lambda: Slow(3)); monkeypatch.setenv("BIDBOX_RUN_TIMEOUT", "1")
+    monkeypatch.setattr(api, "make_llm", lambda: Slow(3)); monkeypatch.setenv("WAZI_RUN_TIMEOUT", "1")
     with TestClient(api.app) as c:
         r = _wait(c, c.post("/api/runs", json={"ocid": "ocds-eval-abv-target", "as_of": "2025-05-01"}).json()["run_id"])
     assert r["status"] == "timeout" and "did not finish within" in r["error"]
 
 
 def test_api_runs_one_model_job_at_a_time_and_queues_the_rest(monkeypatch):
-    monkeypatch.setattr(api, "make_llm", lambda: Slow(0.4)); monkeypatch.delenv("BIDBOX_MAX_RUNS", raising=False)
+    monkeypatch.setattr(api, "make_llm", lambda: Slow(0.4)); monkeypatch.delenv("WAZI_MAX_RUNS", raising=False)
     with TestClient(api.app) as c:
         ids = [c.post("/api/runs", json={"ocid": "ocds-eval-abv-target", "as_of": "2025-05-01"}).json()["run_id"] for _ in range(2)]
         seen = set()
@@ -246,7 +246,7 @@ def _node():
 
 @pytest.mark.skipif(not _node(), reason="node not installed")
 def test_ui_retries_a_flaky_connection_and_escapes_hostile_tender_ids_and_briefs():
-    out = subprocess.run(["node", str(ROOT / "tests" / "ui_smoke.js"), str(ROOT / "bidbox" / "static" / "index.html")], capture_output=True, text=True)
+    out = subprocess.run(["node", str(ROOT / "tests" / "ui_smoke.js"), str(ROOT / "wazi" / "static" / "index.html")], capture_output=True, text=True)
     assert out.returncode == 0, out.stdout + out.stderr
     d = json.loads(out.stdout)
     assert any("Connection problem, retrying" in m for m in d["hist"]) and d["hist"][-1].startswith("Done in")
@@ -261,7 +261,7 @@ def test_python_floor_matches_the_code_and_no_3_11_only_names_remain_under_a_3_1
 def test_every_text_file_read_or_write_names_its_encoding():
     """Windows defaults to a legacy code page; non-ASCII names/titles would garble or crash. Linux hides this, so scan for it."""
     bad = []
-    for py in (ROOT / "bidbox").rglob("*.py"):
+    for py in (ROOT / "wazi").rglob("*.py"):
         for node in ast.walk(ast.parse(py.read_text(encoding="utf-8"))):
             if not isinstance(node, ast.Call):
                 continue

@@ -9,13 +9,13 @@ OPEN = {"planned", "planning", "active"}
 
 
 def today() -> datetime:
-    t = os.environ.get("BIDBOX_TODAY")                       # determinism for tests only
+    t = os.environ.get("WAZI_TODAY")                       # determinism for tests only
     d = datetime.fromisoformat(t.replace("Z", "+00:00")) if t else datetime.now(timezone.utc)
     return d if d.tzinfo else d.replace(tzinfo=timezone.utc)
 
 
 def allowed() -> bool:
-    return os.environ.get("BIDBOX_ALLOW_LIVE") == "1"          # development override; recorded in the brief and the manifest
+    return os.environ.get("WAZI_ALLOW_LIVE") == "1"          # development override; recorded in the brief and the manifest
 
 
 def live_reason(status, deadline, synthetic, now=None) -> str | None:

@@ -14,7 +14,7 @@ It never awards a tender and cannot approve its own filings.
 **Status:** Backend + agent core built (own MCP server, borrowed Fetch MCP server, store, audit log, approval gate, LangGraph agent, 375 tests, 104-mutant check, eval harness, API + one-page UI, submission preflight). Strategic direction validated in ADR 001 based on practitioner research.
 **Not built yet:** Real Kenya data load (the real feed may omit start dates: untested), validity flags for regulation-dependent rules, three-tier gap classification, strengthened approval gate (role + date + printable fingerprint), Act-anchored signal refactoring, critical gap coverage (tender security, evaluation method, payment terms).
 **Not yet tested:** The live open-weights path (`OllamaLLM`) against all eval cases. All agent tests use a deterministic `StubLLM` (not a model; results are flagged `llm: stub`). Run against a real local model before trusting any behaviour claim.
-**Data:** Currently a SYNTHETIC sample (`data/sample_ocds.json`). Swap in a real OCDS export with `python -m bidbox.cli load <file>`.
+**Data:** Currently a SYNTHETIC sample (`data/sample_ocds.json`). Swap in a real OCDS export with `python -m wazi.cli load <file>`.
 **Data half:** Built on tender, award and price history. Bid documents are not published by the portals, so no bid evaluation.
 
 **Scope and limits:** Wazi covers the pre-evaluation readiness slice of the procurement lifecycle (approximately one-quarter to one-third of the full cycle). It addresses market analysis (price benchmarking against past awards), tender notice quality (completeness checks), and buyer award history (supplier concentration signals). It does NOT cover needs identification, sourcing strategy, bid evaluation, award decision, contract management, or post-award review. Legal compliance checks (PPADA minimum tender periods, thresholds, AGPO preference schemes, conflict of interest) are intentionally out of scope. Strategic direction validated in ADR 001 based on practitioner research and legal briefing.
@@ -31,46 +31,46 @@ Creates `.venv`, installs dependencies, loads synthetic sample data, starts UI a
 python -m venv .venv
 . .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
-python -m bidbox.cli load     # load sample data
-python -m bidbox.cli audit    # field coverage and outlier audit
+python -m wazi.cli load     # load sample data
+python -m wazi.cli audit    # field coverage and outlier audit
 python -m pytest              # 375 tests
-python -m bidbox.server       # MCP server over stdio
-python -m bidbox.api          # one-page UI at http://127.0.0.1:8000
+python -m wazi.server       # MCP server over stdio
+python -m wazi.api          # one-page UI at http://127.0.0.1:8000
 ```
 
 **With local Ollama model:**
 ```bash
 ollama pull qwen3:4b          # fits in 4 GB VRAM
-python -m bidbox.agent ocds-synth-0001 --llm ollama --model qwen3:4b --as-of 2026-01-01
+python -m wazi.agent ocds-synth-0001 --llm ollama --model qwen3:4b --as-of 2026-01-01
 ```
 
 **With free-tier OpenAI-compatible endpoint:**
 ```bash
-BIDBOX_LLM_API=openai \
-BIDBOX_LLM_URL=https://api.example.com/v1 \
-BIDBOX_API_KEY=$KEY \
-BIDBOX_MODEL=model-name \
-python -m bidbox.agent ocds-synth-0001 --as-of 2026-01-01
+WAZI_LLM_API=openai \
+WAZI_LLM_URL=https://api.example.com/v1 \
+WAZI_API_KEY=$KEY \
+WAZI_MODEL=model-name \
+python -m wazi.agent ocds-synth-0001 --as-of 2026-01-01
 ```
 
 ## Usage Instructions
 | Task | Command |
 |---|---|
-| Load OCDS data | `python -m bidbox.cli load [file]` |
-| Audit data quality | `python -m bidbox.cli audit` |
-| Run agent (stub) | `python -m bidbox.agent <ocid> --llm stub --as-of 2026-01-01` |
-| Run agent (Ollama) | `python -m bidbox.agent <ocid> --llm ollama --model qwen3:4b --as-of 2026-01-01` |
-| List pending briefs | `python -m bidbox.cli pending` |
-| Show brief + fingerprint | `python -m bidbox.cli show <filing_id>` |
-| Approve brief | `python -m bidbox.cli approve <filing_id> --approver "Name" --sha256 <fingerprint>` |
-| Reject brief | `python -m bidbox.cli reject <filing_id> --approver "Name" --reason "..." --sha256 <fingerprint>` |
-| Verify filing | `python -m bidbox.cli verify <filing_id>` |
-| Run evals (stub) | `BIDBOX_HOME=/tmp/ev python -m bidbox.evals --llm stub --runs 1` |
-| Run evals (Ollama) | `BIDBOX_HOME=/tmp/ev python -m bidbox.evals --llm ollama --model qwen3:4b --runs 5` |
-| Benchmark model | `python -m bidbox.bench --model qwen3:4b --runs 2` |
+| Load OCDS data | `python -m wazi.cli load [file]` |
+| Audit data quality | `python -m wazi.cli audit` |
+| Run agent (stub) | `python -m wazi.agent <ocid> --llm stub --as-of 2026-01-01` |
+| Run agent (Ollama) | `python -m wazi.agent <ocid> --llm ollama --model qwen3:4b --as-of 2026-01-01` |
+| List pending briefs | `python -m wazi.cli pending` |
+| Show brief + fingerprint | `python -m wazi.cli show <filing_id>` |
+| Approve brief | `python -m wazi.cli approve <filing_id> --approver "Name" --sha256 <fingerprint>` |
+| Reject brief | `python -m wazi.cli reject <filing_id> --approver "Name" --reason "..." --sha256 <fingerprint>` |
+| Verify filing | `python -m wazi.cli verify <filing_id>` |
+| Run evals (stub) | `WAZI_HOME=/tmp/ev python -m wazi.evals --llm stub --runs 1` |
+| Run evals (Ollama) | `WAZI_HOME=/tmp/ev python -m wazi.evals --llm ollama --model qwen3:4b --runs 5` |
+| Benchmark model | `python -m wazi.bench --model qwen3:4b --runs 2` |
 | Mutation testing | `python scripts/mutate.py` |
 | Preflight check | `python scripts/preflight.py` |
-| Practitioner review | `python -m bidbox.review --help` |
+| Practitioner review | `python -m wazi.review --help` |
 
 ## Architecture
 See [ARCHITECTURE.md](ARCHITECTURE.md) for a one-page architecture diagram and design decisions.
@@ -123,7 +123,7 @@ The agent is a LangGraph state machine with explicit nodes:
 The model never calls tools, never sees raw tool output as truth, cannot approve, and cannot raise a signal the data did not raise.
 
 ## MCP Implementation
-### Built Server (`bidbox.server`)
+### Built Server (`wazi.server`)
 14 tools over normalized SQLite store:
 | Tool | Type | Purpose |
 |---|---|---|
@@ -149,7 +149,7 @@ Official Fetch MCP server — reads tender document links. Handles robots.txt, r
 Both servers are mandatory for prize eligibility; neither may be stubbed out. If fetch server cannot start, run records `fetch_server_failed` and says so in brief; never silently skips.
 
 ## Harness Design: Fixed Pipeline vs Bounded Investigation Loop
-Two modes (`--mode pipeline|loop`, default loop), compared by `bidbox.evals` on the same cases.
+Two modes (`--mode pipeline|loop`, default loop), compared by `wazi.evals` on the same cases.
 - **Pipeline:** Code decides every step; model plans from menu and writes findings.
 - **Loop:** Same, plus bounded investigation step. Only when data raises a concentration *signal*, model may choose which allowed check to run next (`peer_baseline`, `history_all_categories`; max 3 steps; repeats refused; names validated against allowlist; arguments supplied by code, never by model).
 - `peer_baseline` tests signal against comparable buyers. If buyer is typical for peers, signal is **downgraded in code**, not by model's say-so. If above peers, signal stands. If cannot be tested, brief says so.
@@ -158,10 +158,10 @@ Two modes (`--mode pipeline|loop`, default loop), compared by `bidbox.evals` on 
 
 ## Human-in-the-Loop Workflow
 1. Agent runs and produces a brief → `file_brief` queues it in `var/outbox/pending/`
-2. Human reviews: `python -m bidbox.cli pending` lists pending briefs
-3. Human inspects: `python -m bidbox.cli show <filing_id>` shows brief + fingerprint
-4. Human approves: `python -m bidbox.cli approve <filing_id> --approver "Name" --sha256 <fingerprint>`
-5. Human rejects: `python -m bidbox.cli reject <filing_id> --approver "Name" --reason "..." --sha256 <fingerprint>`
+2. Human reviews: `python -m wazi.cli pending` lists pending briefs
+3. Human inspects: `python -m wazi.cli show <filing_id>` shows brief + fingerprint
+4. Human approves: `python -m wazi.cli approve <filing_id> --approver "Name" --sha256 <fingerprint>`
+5. Human rejects: `python -m wazi.cli reject <filing_id> --approver "Name" --reason "..." --sha256 <fingerprint>`
 6. Approval gate enforces: exact fingerprint match, approver name normalized (full-width/zero-width 'agent' refused), no path traversal
 7. API endpoints: `GET /api/filings`, `POST /api/filings/{id}/approve`, `POST /api/filings/{id}/reject`, `GET /api/filings/{id}/verify`
 8. UI: One-page at `http://127.0.0.1:8000` with approve/reject buttons and verify button
@@ -194,9 +194,9 @@ Two modes (`--mode pipeline|loop`, default loop), compared by `bidbox.evals` on 
 Only the 4 GB of VRAM matters for speed: models up to about 4B parameters at Q4 can sit fully on the GPU; 7-8B models spill to CPU and are several times slower. The integrated Radeon is not used.
 1. Install Ollama for Windows, then in PowerShell: `ollama pull qwen3:4b` (also try `phi4-mini` and `llama3.2:3b`; verify tag names in the Ollama library).
 2. `ollama ps` while a model is loaded: it should say 100% GPU. A CPU/GPU split means it is too big and will be slow.
-3. Measure, do not guess: `python -m bidbox.bench --model qwen3:4b --runs 2` prints seconds per agent run, tokens/sec, whether the template fallback fired (a red flag) and a projected eval time.
-4. Real eval: in PowerShell `$env:BIDBOX_HOME="$env:TEMP\ev"; python -m bidbox.evals --llm ollama --model qwen3:4b --runs 1`, then `--runs 3` once you are happy.
-- The client uses Ollama's native API: JSON mode, thinking off, 4096-token context, model kept loaded, exact token counts. `BIDBOX_LLM_API=openai` switches to any OpenAI-compatible server (vLLM, llama.cpp, LM Studio).
+3. Measure, do not guess: `python -m wazi.bench --model qwen3:4b --runs 2` prints seconds per agent run, tokens/sec, whether the template fallback fired (a red flag) and a projected eval time.
+4. Real eval: in PowerShell `$env:WAZI_HOME="$env:TEMP\ev"; python -m wazi.evals --llm ollama --model qwen3:4b --runs 1`, then `--runs 3` once you are happy.
+- The client uses Ollama's native API: JSON mode, thinking off, 4096-token context, model kept loaded, exact token counts. `WAZI_LLM_API=openai` switches to any OpenAI-compatible server (vLLM, llama.cpp, LM Studio).
 - Our task is small: about 1,300 prompt tokens and about 550 output tokens per run (estimated from the deterministic stub, so a real model may differ).
 - Plug the laptop in and use the performance power mode; laptop GPUs slow down on battery.
 - Developed and tested on Linux. Not yet run on Windows.
@@ -221,7 +221,7 @@ At a glance (buyer, category, method, estimated value, deadline with days left o
 - The sample data's windows are synthetic. The real Kenya feed may not publish start dates; the analysis then degrades to 'cannot be assessed' rather than guessing.
 
 ## Fit evidence: practitioner reviews (`FIT_PLAN.md`)
-The challenge asks whether someone who does the job reviewed this. That has to be a real conversation; nothing in this repo can substitute for one, and the tooling refuses to pretend. `python -m bidbox.review` makes a real conversation easy to run and impossible to fake:
+The challenge asks whether someone who does the job reviewed this. That has to be a real conversation; nothing in this repo can substitute for one, and the tooling refuses to pretend. `python -m wazi.review` makes a real conversation easy to run and impossible to fake:
 - `packet` builds what you send: the briefs, their fingerprints, whether each came from a model or the stub, whether the data is synthetic, the timed-task protocol and a consent section.
 - `record` validates a completed review: consent is mandatory, the reviewer must have a real role and attest to being human, ratings are 1-5, and every review names the **exact brief fingerprints** the person saw (an edited brief cannot be reviewed against an old hash).
 - `change --because REVIEW_ID` attributes product changes to feedback that exists.
@@ -229,25 +229,25 @@ The challenge asks whether someone who does the job reviewed this. That has to b
 - Limits: reviews are self-reported and attested by the team; the tool cannot prove the conversation happened, only that the record is consistent, consented, bound to real briefs and not inflated.
 
 ## Data conduct (the challenge rules, enforced in code)
-- **Never a live tender in progress.** A real tender that is still open today (deadline in the future, or status planned/planning/active with no usable deadline) is refused by the agent before any work, and again by the server when a brief is filed, so bypassing the agent does not bypass the rule. Closed, cancelled, unsuccessful and withdrawn tenders are fine; so is synthetic data (marked by the publisher name, or `bidbox.cli load --synthetic`; `--real` forces the opposite). The check uses the wall clock, not the replay date: replaying a closed tender as of an earlier date is the intended use. `BIDBOX_ALLOW_LIVE=1` is a development override that is stamped on the brief and in the manifest; the challenge forbids live tenders.
+- **Never a live tender in progress.** A real tender that is still open today (deadline in the future, or status planned/planning/active with no usable deadline) is refused by the agent before any work, and again by the server when a brief is filed, so bypassing the agent does not bypass the rule. Closed, cancelled, unsuccessful and withdrawn tenders are fine; so is synthetic data (marked by the publisher name, or `wazi.cli load --synthetic`; `--real` forces the opposite). The check uses the wall clock, not the replay date: replaying a closed tender as of an earlier date is the intended use. `WAZI_ALLOW_LIVE=1` is a development override that is stamped on the brief and in the manifest; the challenge forbids live tenders.
 - **Stage-by-stage releases are merged.** OCDS publishes a tender release, then award and contract releases, for the same tender. Later releases add or change fields; a field a release does not mention (or sets to null/empty) is never erased; an award is replaced by its id, never wiped with its siblings. (An earlier version let each release overwrite the last.)
 - **Personal data.** Only organisation ids and names are loaded; contact points are ignored. Not handled: a supplier that is a sole trader whose company name is a person's name.
-- **Fresh machine:** `tests/test_packaging.py` bootstraps a clean copy with `python run.py --check` (set `BIDBOX_TEST_INSTALL=1`; needs network).
+- **Fresh machine:** `tests/test_packaging.py` bootstraps a clean copy with `python run.py --check` (set `WAZI_TEST_INSTALL=1`; needs network).
 
 ## Defensibility: every brief carries its own proof
 - **Manifest** (`<filing>.manifest.json`, hash-linked brief -> manifest -> decision): run id, reference date, data version (hash of every loaded file), code version, model and settings (and whether the endpoint was REMOTE), every read-tool call with the hash of its exact output, the evidence, the documents, the findings with the evidence ids each rests on, the exact prompts and responses of every model call, and the cost (calls, tokens, seconds).
 - **Replay at filing:** `file_brief` re-executes every recorded tool call and refuses the brief if any output differs, so the agent cannot file work the data does not reproduce.
 - **Real citations:** a citation must be an OCDS-style path that the cited record actually has a value at (a finding that reports a gap may cite the empty field).
 - **Decisions are bound to content:** a brief edited after filing cannot be approved; the API and CLI require the fingerprint of the brief the person reviewed (409 on mismatch); the decision records brief hash, manifest hash and the confirmed fingerprint.
-- **`python -m bidbox.cli verify <id>`** (also `GET /api/filings/<id>/verify` and a button in the UI) audits independently: brief unchanged, decision consistent, data and code version unchanged, all tool calls replay identically, the evidence equals what the data and documents produce, every finding grounded and verdict-free, model prompts intact. Verdicts: REPRODUCED; INTEGRITY OK; DATA CHANGED SINCE FILING; FAILED; NOT REPRODUCIBLE.
+- **`python -m wazi.cli verify <id>`** (also `GET /api/filings/<id>/verify` and a button in the UI) audits independently: brief unchanged, decision consistent, data and code version unchanged, all tool calls replay identically, the evidence equals what the data and documents produce, every finding grounded and verdict-free, model prompts intact. Verdicts: REPRODUCED; INTEGRITY OK; DATA CHANGED SINCE FILING; FAILED; NOT REPRODUCIBLE.
 - **Limits:** if someone rewrites the brief, manifest and decision consistently, nothing inside the folder can tell; anchor `md_sha256` somewhere outside (print it, email it, commit it). Code version is a hash of the source files, so line endings change it between machines.
 
 ## Testing on a laptop and a free tier
-- **Fast by default:** the suite runs the agent in-process (`BIDBOX_INPROC=1`, set by the tests): same tool functions and logging, no subprocesses. About 290 tests in under a minute. Six `@pytest.mark.mcp` contract tests run the REAL servers (tool list parity, run-id linkage across processes, replay across real serialisation, forged provenance, a full API run, quota stops through task groups). `pytest -m "not mcp"` for the quickest loop.
+- **Fast by default:** the suite runs the agent in-process (`WAZI_INPROC=1`, set by the tests): same tool functions and logging, no subprocesses. About 290 tests in under a minute. Six `@pytest.mark.mcp` contract tests run the REAL servers (tool list parity, run-id linkage across processes, replay across real serialisation, forged provenance, a full API run, quota stops through task groups). `pytest -m "not mcp"` for the quickest loop.
 - **No model calls in tests, ever.** Models are stubbed or faked, so tests spend no quota and need no GPU.
 - **Mutation check:** `python scripts/mutate.py [lo:hi]` tries the most relevant tests first and the full suite as the fallback.
-- **Free-tier model client** (`BIDBOX_LLM_API=openai BIDBOX_LLM_URL=... BIDBOX_API_KEY=... BIDBOX_MODEL=...`): Bearer key (never logged), 429/5xx retried with Retry-After or exponential backoff, a daily-quota 429 raises `QuotaExhausted` (not retried), providers without JSON mode retried without it, `BIDBOX_RPM` pacing, `BIDBOX_MAX_CALLS` / `BIDBOX_MAX_TOKENS` budgets, `BIDBOX_LLM_CACHE=<file>` (`BIDBOX_LLM_CACHE_MODE=readonly` guarantees no network). A used-up quota stops the run loudly; it is never turned into a fallback brief.
-- **Eval workflow that respects quotas:** `python -m bidbox.evals --dry-run --tier smoke --rpm 10` prices a run first; then `--tier smoke`, `core`, `full`. Cases whose guarantee is enforced by code (refusals, gate, injection, dead links) run with the stub and cost no quota (marked with a double dagger); only model-dependent cases use the real model. Every finished run is checkpointed, so after a quota stop you re-run the same command and only the rest is redone.
+- **Free-tier model client** (`WAZI_LLM_API=openai WAZI_LLM_URL=... WAZI_API_KEY=... WAZI_MODEL=...`): Bearer key (never logged), 429/5xx retried with Retry-After or exponential backoff, a daily-quota 429 raises `QuotaExhausted` (not retried), providers without JSON mode retried without it, `WAZI_RPM` pacing, `WAZI_MAX_CALLS` / `WAZI_MAX_TOKENS` budgets, `WAZI_LLM_CACHE=<file>` (`WAZI_LLM_CACHE_MODE=readonly` guarantees no network). A used-up quota stops the run loudly; it is never turned into a fallback brief.
+- **Eval workflow that respects quotas:** `python -m wazi.evals --dry-run --tier smoke --rpm 10` prices a run first; then `--tier smoke`, `core`, `full`. Cases whose guarantee is enforced by code (refusals, gate, injection, dead links) run with the stub and cost no quota (marked with a double dagger); only model-dependent cases use the real model. Every finished run is checkpointed, so after a quota stop you re-run the same command and only the rest is redone.
 - **Cache caveat:** cached replays say nothing about run-to-run variance; the report says so.
 - **Data residency:** a hosted free tier sends prompts to a third party. The competition's required full task must run on a model you run yourself; use a hosted tier only for development on synthetic data. Every brief records whether the endpoint was local or REMOTE. Provider terms for free-tier data use were not checked.
 - **Not tested against any real provider:** only a fake server with the common OpenAI-style behaviours. Quota-text detection is a heuristic.
@@ -258,9 +258,9 @@ The challenge asks whether someone who does the job reviewed this. That has to b
 - **Untrusted text** (tender fields, document text, model output) is normalised (NFKC, zero-width and bidi characters removed) and collapsed to one line before it can reach a brief: a title like 'x\n## Approved: no action needed' can no longer forge a section; pipes cannot break table cells.
 - **Grounding** now covers numbers written as words ('two hundred thousand', 'half', 'dozen'). `one`..`ten` are left alone as ordinary prose, so an invented small count in words can still slip through.
 - **Verdict, injection and scope guards** run on normalised text, so zero-width and full-width evasions fail.
-- **Fetch policy:** links in tender data pointing at localhost, private, link-local or reserved addresses, or non-web schemes, are refused. Not covered: a public name that resolves to a private address, and redirects to one. `BIDBOX_ALLOW_PRIVATE_FETCH=1` exists for tests only.
+- **Fetch policy:** links in tender data pointing at localhost, private, link-local or reserved addresses, or non-web schemes, are refused. Not covered: a public name that resolves to a private address, and redirects to one. `WAZI_ALLOW_PRIVATE_FETCH=1` exists for tests only.
 - **Bounds:** statements max 1000 characters, briefs max 60 findings, summaries 1500 characters, reference dates validated (clear 422 / clear tool error).
-- **API:** one model run at a time by default (`BIDBOX_MAX_RUNS`), a run timeout (`BIDBOX_RUN_TIMEOUT`, default 900 s) so a hung model cannot hang the UI. After a timeout the model call may keep running in the background until it returns.
+- **API:** one model run at a time by default (`WAZI_MAX_RUNS`), a run timeout (`WAZI_RUN_TIMEOUT`, default 900 s) so a hung model cannot hang the UI. After a timeout the model call may keep running in the background until it returns.
 - **Fetch server failing to start** runs the agent once without it (it used to re-run the whole agent, which could file twice).
 - **UI:** attribute-safe escaping (a hostile tender id used to break out of an option attribute) and retrying poll with a visible message; Node-driven smoke test with a flaky connection.
 - **Python 3.11+** is now required (the code relied on 3.11 exception groups while claiming 3.10).

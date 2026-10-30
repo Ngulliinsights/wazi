@@ -77,8 +77,8 @@ class State(TypedDict, total=False):
 
 @asynccontextmanager
 async def mcp_session(run_id: str):
-    env = {**os.environ, "BIDBOX_RUN_ID": run_id}
-    params = StdioServerParameters(command=sys.executable, args=["-m", "bidbox.server"], env=env)
+    env = {**os.environ, "WAZI_RUN_ID": run_id}
+    params = StdioServerParameters(command=sys.executable, args=["-m", "wazi.server"], env=env)
     async with stdio_client(params) as (r, w):
         async with ClientSession(r, w) as s:
             await s.initialize()
@@ -154,7 +154,7 @@ def build_graph(session: ClientSession, llm, run_id: str, events: list, fetch: C
         if reason:                      # data conduct: never a live tender in progress
             if not policy.allowed():
                 emit("refused_live", reason=reason)
-                return {"status": "refused_live", "error": f"This tender is still live ({reason}). Bid Box only prepares briefs for closed tenders and synthetic data."}
+                return {"status": "refused_live", "error": f"This tender is still live ({reason}). Wazi only prepares briefs for closed tenders and synthetic data."}
             emit("live_override", reason=reason)
             return {"notice": n, "live_override": True}
         return {"notice": n}
@@ -485,7 +485,7 @@ async def run_agent(ocid: str, request: str = "Prepare a tender readiness brief"
     as_of = as_of or date.today().isoformat()   # a replayable run needs a concrete reference date, recorded with it
     run_id, events, t0 = run_id or uuid.uuid4().hex[:12], [], time.perf_counter()
     try:
-        inproc = (os.environ.get("BIDBOX_INPROC") == "1") if inproc is None else inproc   # tests only: real runs always use real MCP servers
+        inproc = (os.environ.get("WAZI_INPROC") == "1") if inproc is None else inproc   # tests only: real runs always use real MCP servers
         async with (inproc_session(run_id) if inproc else mcp_session(run_id)) as session:
             async with AsyncExitStack() as stack:
                 fetch = None

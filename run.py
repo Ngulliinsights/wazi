@@ -37,19 +37,19 @@ def main(argv: list[str]) -> int:
     if not PY.exists():
         print("creating .venv ...", flush=True)
         venv.EnvBuilder(with_pip=True).create(VENV)
-    stamp, mark = hashlib.sha256((ROOT / "pyproject.toml").read_bytes()).hexdigest()[:16], VENV / ".bidbox-installed"
+    stamp, mark = hashlib.sha256((ROOT / "pyproject.toml").read_bytes()).hexdigest()[:16], VENV / ".wazi-installed"
     if not mark.exists() or mark.read_text() != stamp:
         print("installing dependencies (first run only, a minute or two) ...", flush=True)
         run(PY, "-m", "pip", "install", "-q", "-e", ".")
         mark.write_text(stamp)
     stub = "--stub" in argv or "--check" in argv or not ollama_up()
-    env = {**os.environ, "BIDBOX_LLM": "stub" if stub else "ollama"}
+    env = {**os.environ, "WAZI_LLM": "stub" if stub else "ollama"}
     if stub:
         print("No local model found (or --stub): using the deterministic STUB. Demo only, not a model.", flush=True)
-    if not (ROOT / "var" / "bidbox.db").exists():
-        run(PY, "-m", "bidbox.cli", "load", env=env, stdout=subprocess.DEVNULL)
+    if not (ROOT / "var" / "wazi.db").exists():
+        run(PY, "-m", "wazi.cli", "load", env=env, stdout=subprocess.DEVNULL)
     if "--check" in argv:
-        out = run(PY, "-m", "bidbox.agent", "ocds-synth-0001", "--llm", "stub", "--as-of", "2026-01-01", env=env, capture_output=True, text=True)
+        out = run(PY, "-m", "wazi.agent", "ocds-synth-0001", "--llm", "stub", "--as-of", "2026-01-01", env=env, capture_output=True, text=True)
         ok = '"status": "awaiting_human_approval"' in out.stdout
         print("check:", "OK" if ok else "FAILED")
         return 0 if ok else 1
@@ -57,7 +57,7 @@ def main(argv: list[str]) -> int:
     url = f"http://127.0.0.1:{port}"
     print(f"Starting {url}  (Ctrl+C to stop)", flush=True)
     threading.Timer(2.5, lambda: webbrowser.open(url)).start()
-    run(PY, "-m", "bidbox.api", env={**env, "PORT": str(port)})
+    run(PY, "-m", "wazi.api", env={**env, "PORT": str(port)})
     return 0
 
 

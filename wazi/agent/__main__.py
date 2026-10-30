@@ -4,7 +4,7 @@ import json
 from .graph import run_agent_sync
 from .llm import OllamaLLM, StubLLM
 
-p = argparse.ArgumentParser(prog="python -m bidbox.agent")
+p = argparse.ArgumentParser(prog="python -m wazi.agent")
 p.add_argument("ocid"); p.add_argument("--as-of"); p.add_argument("--request", default="Prepare a tender readiness brief")
 p.add_argument("--llm", choices=["ollama", "stub"], default="ollama"); p.add_argument("--model")
 p.add_argument("--mode", choices=["loop", "pipeline"], default="loop")

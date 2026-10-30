@@ -1,5 +1,5 @@
 """Measure YOUR hardware before committing to a model. One command, a few minutes.
-  python -m bidbox.bench --model qwen3:4b --runs 2
+  python -m wazi.bench --model qwen3:4b --runs 2
 Reports load time, seconds per agent run, tokens and tokens/sec, whether the template fallback fired (a quality red flag),
 and a projection of how long the full eval harness would take. Use --llm stub to test the script itself."""
 import argparse
@@ -40,7 +40,7 @@ def bench(make_llm, runs: int, warm: bool = True) -> dict:
 
 
 def main():
-    p = argparse.ArgumentParser(prog="python -m bidbox.bench")
+    p = argparse.ArgumentParser(prog="python -m wazi.bench")
     p.add_argument("--llm", choices=["ollama", "stub"], default="ollama"); p.add_argument("--model"); p.add_argument("--runs", type=int, default=2)
     p.add_argument("--api", choices=["native", "openai"])
     a = p.parse_args()

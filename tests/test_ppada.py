@@ -1,8 +1,8 @@
 """Tests for PPADA Act-specific checks from the edge-case checklist."""
 import pytest
 
-from bidbox import tools
-from bidbox.store import connect, load_ocds
+from wazi import tools
+from wazi.store import connect, load_ocds
 from pathlib import Path
 
 SAMPLE = Path(__file__).resolve().parent.parent / "data" / "sample_ocds.json"

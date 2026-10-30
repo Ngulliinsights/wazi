@@ -10,10 +10,10 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from bidbox import api, config, policy, tools
-from bidbox.agent import run_agent
-from bidbox.agent.llm import StubLLM
-from bidbox.store import connect, load_ocds
+from wazi import api, config, policy, tools
+from wazi.agent import run_agent
+from wazi.agent.llm import StubLLM
+from wazi.store import connect, load_ocds
 
 ROOT = Path(__file__).resolve().parent.parent
 NOW = datetime(2026, 10, 12, tzinfo=timezone.utc)
@@ -51,9 +51,9 @@ def test_the_live_tender_matrix(status, deadline, synthetic, live):
 
 
 def test_the_clock_is_the_wall_clock_and_can_be_pinned_for_tests(monkeypatch):
-    monkeypatch.setenv("BIDBOX_TODAY", "2025-01-01")
+    monkeypatch.setenv("WAZI_TODAY", "2025-01-01")
     assert policy.live_reason(None, PAST, 0) is not None                 # the same tender is live on 2025-01-01 ...
-    monkeypatch.delenv("BIDBOX_TODAY")
+    monkeypatch.delenv("WAZI_TODAY")
     assert policy.live_reason(None, PAST, 0) is None                     # ... and closed today
 
 
@@ -87,7 +87,7 @@ def test_the_server_refuses_to_file_a_live_tender_even_if_the_agent_is_bypassed(
 
 
 def test_the_development_override_works_and_is_recorded_everywhere(monkeypatch):
-    monkeypatch.setenv("BIDBOX_ALLOW_LIVE", "1")
+    monkeypatch.setenv("WAZI_ALLOW_LIVE", "1")
     r = go("lp-live"); assert r["status"] == "awaiting_human_approval" and any(e["event"] == "live_override" for e in r["events"])
     md = (config.OUTBOX / "pending" / f"{r['filing_id']}.md").read_text(encoding="utf-8")
     assert "LIVE TENDER OVERRIDE" in md.splitlines()[-1]
@@ -117,8 +117,8 @@ def test_databases_from_before_the_policy_are_migrated(tmp_path):
 
 def test_the_cli_can_mark_data_synthetic_or_force_it_real(tmp_path):
     f = tmp_path / "p.json"; f.write_text(json.dumps({"publisher": {"name": "SYNTHETIC x"}, "releases": [rel("cli-1", "active")]}), encoding="utf-8")
-    env = {**__import__("os").environ, "BIDBOX_HOME": str(tmp_path / "home")}
+    env = {**__import__("os").environ, "WAZI_HOME": str(tmp_path / "home")}
     def synth(flag):
-        subprocess.run([sys.executable, "-m", "bidbox.cli", "load", str(f), *flag], capture_output=True, text=True, cwd=ROOT, env=env, check=True)
-        return connect(tmp_path / "home" / "var" / "bidbox.db").execute("SELECT synthetic FROM tenders WHERE ocid='cli-1'").fetchone()[0]
+        subprocess.run([sys.executable, "-m", "wazi.cli", "load", str(f), *flag], capture_output=True, text=True, cwd=ROOT, env=env, check=True)
+        return connect(tmp_path / "home" / "var" / "wazi.db").execute("SELECT synthetic FROM tenders WHERE ocid='cli-1'").fetchone()[0]
     assert synth([]) == 1 and synth(["--real"]) == 0 and synth(["--synthetic"]) == 1

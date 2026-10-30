@@ -1,708 +1,708 @@
 [
  [
-  "bidbox/agent/evidence.py",
+  "wazi/agent/evidence.py",
   "return bool(GUARD.search(normalize(request)))",
   "return False",
   "scope guard disabled"
  ],
  [
-  "bidbox/agent/evidence.py",
+  "wazi/agent/evidence.py",
   "rel_tol: float = 0.005",
   "rel_tol: float = 5.0",
   "grounding tolerance huge"
  ],
  [
-  "bidbox/agent/evidence.py",
+  "wazi/agent/evidence.py",
   "if not any(abs(n - a)",
   "if any(abs(n - a)",
   "grounding check inverted"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "if sev == \"signal\" and not any(by_id[i][\"signal\"] for i in ids):",
   "if False:",
   "model can raise signals"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "if ev.violates_scope(s.get(\"request\", \"\")):",
   "if False:",
   "agent no longer refuses award requests"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "if (s[\"rejected\"] or not s[\"accepted\"]) and s[\"attempt\"] < MAX_ATTEMPTS:",
   "if False:",
   "no retry after rejection"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "if not key and n.get(\"buyer_id\"):",
   "if False:",
   "no buyer-id fallback"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "if not summary or ev.ungrounded_numbers(summary,",
   "if not summary or False and ev.ungrounded_numbers(summary,",
   "ungrounded summary filed"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "if cat and (not h.get(\"found\") or h[\"n_awards\"] < 5):",
   "if False:",
   "no thin-history broadening"
  ],
  [
-  "bidbox/agent/evidence.py",
+  "wazi/agent/evidence.py",
   "return bool(INJECT.search(normalize(text)))",
   "return False",
   "injected document text reaches the model"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "urls = s[\"notice\"].get(\"documents\", [])[:2]",
   "urls = s[\"notice\"].get(\"documents\", [])[:0]",
   "borrowed Fetch server never used"
  ],
  [
-  "bidbox/agent/fetcher.py",
+  "wazi/agent/fetcher.py",
   "if res.isError:",
   "if False:",
   "fetch errors treated as documents"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "if not isinstance(f, dict):",
   "if False:",
   "crash on non-object finding from model"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "t = re.sub(r\"(?is)<think>.*?</think>\", \"\", text or \"\")",
   "t = text or \"\"",
   "Qwen3 think blocks break parsing"
  ],
  [
-  "bidbox/store.py",
+  "wazi/store.py",
   "v = float(x.replace(\",\", \"\").strip())",
   "v = float(x.strip())",
   "comma-formatted amounts not coerced"
  ],
  [
-  "bidbox/store.py",
+  "wazi/store.py",
   "or not _s(r.get(\"ocid\")):",
   "or False:",
   "records without an ocid are loaded"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "if not isinstance(ids, list) or not ids or not all(isinstance(i, str) and i in by_id for i in ids):",
   "if False:",
   "malformed evidence ids accepted"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "out[\"buyer_share\"] - med >= 0.15",
   "out[\"buyer_share\"] - med >= -1",
   "above_peers ignores the margin over the median"
  ],
  [
-  "bidbox/agent/evidence.py",
+  "wazi/agent/evidence.py",
   "e[\"signal\"] = False",
   "pass",
   "typical peers no longer downgrade the signal"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "or out.get(\"action\") != \"call\" or tool not in remaining:",
   "or out.get(\"action\") != \"call\":",
   "investigation allowlist not enforced"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "if s.get(\"mode\") != \"loop\":",
   "if False:",
   "pipeline mode investigates anyway"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "if not h or not any(f.startswith(\"signal\") for f in h[\"flags\"]) or not s.get(\"hkey\"):",
   "if not h or not s.get(\"hkey\"):",
   "investigates when there is no signal"
  ],
  [
-  "bidbox/agent/evidence.py",
+  "wazi/agent/evidence.py",
   "elif any(e[\"signal\"] and e[\"kind\"] == \"buyer_history\" for e in ev):",
   "elif False:",
   "untested signal not disclosed"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "ORDER = {\"signal\": 0, \"check\": 1, \"info\": 2}",
   "ORDER = {\"signal\": 2, \"check\": 1, \"info\": 0}",
   "signals no longer listed first in the brief"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   " if dl >= ref",
   "  if dl <= ref",
   "brief shows open/closed backwards"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "if not present]",
   "if present]",
   "missing fields not turned into questions"
  ],
  [
-  "bidbox/findings.py",
+  "wazi/findings.py",
   "        if has_verdict(v):",
   "        if False:",
   "server accepts verdict language"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "if has_verdict(f[\"statement\"]):",
   "if False:",
   "agent accepts verdict language"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "GROUP BY a.ocid, COALESCE(a.award_id, '')",
   "GROUP BY a.rowid",
   "joint-venture awards counted once per member in price benchmark"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "    keys = {(r[\"ocid\"], r[\"award_id\"]) for r in rows}",
   "    keys = {(r[\"ocid\"], r[\"award_id\"], r[\"supplier_id\"]) for r in rows}",
   "joint-venture awards counted once per member in history"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "\"deadline\": \"Add the closing date to the published notice (it is not recorded).\"",
   "\"deadline\": \"Confirm the submission deadline with the buyer (not recorded).\"",
   "procurement manager told to ask themselves"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "\"price\": \"Your estimate against past awards\"",
   "\"price\": \"Price position\"",
   "buyer view loses its market-estimate section"
  ],
  [
-  "bidbox/findings.py",
+  "wazi/findings.py",
   "compliant|legal|lawful|irregular|improper|unlawful|fair|rigged|biased",
   "zzzz",
   "machine verdicts on legality allowed"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "\"conflicts of interest, how many bids to expect, budget availability, and contract performance.\"",
   "\"how many bids to expect, budget availability, and contract performance.\"",
   "buyer brief hides what it cannot check"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "short = days < p25 and days <= 0.75 * med",
   "short = days < p25",
   "short window needs no margin below the median"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "long_ = days > p75 and days >= 1.25 * med",
   "long_ = days > p75",
   "long window needs no margin above the median"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "    if days < 0:",
   "    if days < -99999:",
   "inverted window analysed as if valid"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "if len(peers) >= min_peers:",
   "if len(peers) >= 1:",
   "window judged on too few peers"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "if a and b and (_utc(b) - _utc(a)).days >= 0:",
   "if a and b and (_utc(b) - _utc(a)).days >= -9999:",
   "invalid peer windows counted"
  ],
  [
-  "bidbox/agent/evidence.py",
+  "wazi/agent/evidence.py",
   "if e[\"signal\"] and e[\"kind\"] == \"buyer_history\":",
   "if e[\"signal\"]:",
   "concentration downgrade erases the window signal"
  ],
  [
-  "bidbox/agent/evidence.py",
+  "wazi/agent/evidence.py",
   "signal=pos == \"shorter_than_peers\")",
   "signal=False)",
   "short window never becomes a signal"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "return {\"window\": await call(\"window_baseline\", ocid=s[\"ocid\"])}",
   "return {\"window\": None}",
   "window check never runs"
  ],
  [
-  "bidbox/agent/evidence.py",
+  "wazi/agent/evidence.py",
   "unk = [u for u in notice[\"unknown\"] if u != \"start\"]",
   "unk = [u for u in notice[\"unknown\"]]",
   "missing start reported twice"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "if done == \"length\":",
   "if False:",
   "truncated model output accepted as complete"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "if not (text or \"\").strip():",
   "if False:",
   "empty reasoning-model reply not detected"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "if e.code == 400 and \"think\" in e.detail.lower() and self._think_param_ok:",
   "if False:",
   "models without thinking mode cannot be used"
  ],
  [
-  "bidbox/gate.py",
+  "wazi/gate.py",
   "if not isinstance(fid, str) or not FILING_ID.match(fid):",
   "if False:",
   "gate turns any string into a file path"
  ],
  [
-  "bidbox/gate.py",
+  "wazi/gate.py",
   "n = oneline(name)",
   "n = (name or \"\").strip()",
   "disguised agent names accepted as approvers"
  ],
  [
-  "bidbox/audit_log.py",
+  "wazi/audit_log.py",
   "            except ValueError:\n                continue\n            if isinstance(rec, dict)",
   "            except ValueError:\n                raise\n            if isinstance(rec, dict)",
   "one corrupt log line poisons every reader"
  ],
  [
-  "bidbox/textsafe.py",
+  "wazi/textsafe.py",
   "return re.sub(r\"\\s+\", \" \", normalize(text)).strip()",
   "return normalize(text).strip()",
   "newlines in untrusted text can forge brief structure"
  ],
  [
-  "bidbox/agent/evidence.py",
+  "wazi/agent/evidence.py",
   "bad += sorted({w.lower() for w in NUMWORDS.findall(st)} - known)",
   "bad += []",
   "invented figures written as words pass grounding"
  ],
  [
-  "bidbox/findings.py",
+  "wazi/findings.py",
   "return bool(VERDICT.search(normalize(text)))",
   "return bool(VERDICT.search(text or \"\"))",
   "verdict guard evaded by unicode tricks"
  ],
  [
-  "bidbox/agent/fetcher.py",
+  "wazi/agent/fetcher.py",
   "if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast or ip.is_unspecified:",
   "if False:",
   "agent fetches private addresses named in tender data"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "accepted, rejected = verify_findings(findings[:MAX_FINDINGS], conn)",
   "accepted, rejected = verify_findings(findings, conn)",
   "unbounded number of findings"
  ],
  [
-  "bidbox/api.py",
+  "wazi/api.py",
   "datetime.fromisoformat(req.as_of.replace(\"Z\", \"+00:00\"))",
   "pass",
   "API accepts a nonsense reference date"
  ],
  [
-  "bidbox/api.py",
+  "wazi/api.py",
   "async with _sem():",
   "if True:",
   "API runs unlimited model jobs in parallel"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   ".replace(\"|\", \"\\\\|\")",
   ".replace(\"|\", \"|\")",
   "pipes in untrusted text break table cells"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "wait = float(ra)",
   "wait = 1.0",
   "Retry-After ignored"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "wait = min(60.0, 2.0 ** attempt)",
   "wait = 1.0",
   "no exponential backoff"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "if e.code == 429 and QUOTA_TEXT.search(detail):",
   "if False:",
   "a daily quota is retried like a busy server"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "if e.code == 400 and self._json_mode_ok and re.search(r\"response_format|json_object|json mode\", e.detail, re.I):",
   "if False:",
   "providers without JSON mode cannot be used"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "headers[\"Authorization\"] = f\"Bearer {self.api_key}\"",
   "pass",
   "API key never sent"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "if mc and self.calls >= mc:",
   "if False:",
   "call budget ignored"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "if mt and self.tokens >= mt:",
   "if False:",
   "token budget ignored"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "self.next_ok = max(now, self.next_ok) + 60.0 / rpm",
   "self.next_ok = now",
   "requests are not paced"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "hit = CACHE.get(key)",
   "hit = None",
   "cache never used"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "if CACHE.readonly:",
   "if False:",
   "readonly cache still calls the network"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "return not (ip.is_loopback or ip.is_private or ip.is_link_local)",
   "return False",
   "remote endpoints reported as local"
  ],
  [
-  "bidbox/agent/llm.py",
+  "wazi/agent/llm.py",
   "        obj = extract_json(text)\n        CACHE.put(key,",
   "        CACHE.put(key,",
   "unparseable replies get cached"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "        except QuotaExhausted:\n            raise                                    # a used-up quota",
   "        except ZeroDivisionError:\n            raise                                    # a used-up quota",
   "plan step swallows a quota stop"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "        except QuotaExhausted:\n            raise\n        except Exception as e:\n            emit(\"synthesize_error\"",
   "        except ZeroDivisionError:\n            raise\n        except Exception as e:\n            emit(\"synthesize_error\"",
   "synthesize step swallows a quota stop"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "            except QuotaExhausted:\n                raise\n            except Exception as e:\n                emit(\"investigate_error\"",
   "            except ZeroDivisionError:\n                raise\n            except Exception as e:\n                emit(\"investigate_error\"",
   "investigate step swallows a quota stop"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "q = [x for x in leaves(eg) if isinstance(x, QuotaExhausted)]",
   "q = []",
   "quota stop lost inside real MCP task groups"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "as_of = as_of or date.today().isoformat()",
   "as_of = as_of",
   "reference date left implicit (cannot replay tomorrow)"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "roles.setdefault(prov.sha(s[key]), role)",
   "pass",
   "tool calls recorded without their role"
  ],
  [
-  "bidbox/api.py",
+  "wazi/api.py",
   "    except QuotaExhausted as e:\n        RUNS[run_id] = {\"run_id\": run_id, \"done\": True, \"status\": \"quota_exhausted\"",
   "    except ZeroDivisionError as e:\n        RUNS[run_id] = {\"run_id\": run_id, \"done\": True, \"status\": \"quota_exhausted\"",
   "API shows a quota stop as a vague error"
  ],
  [
-  "bidbox/api.py",
+  "wazi/api.py",
   "if not body.brief_sha256:",
   "if False:",
   "API decides without a content fingerprint"
  ],
  [
-  "bidbox/evals.py",
+  "wazi/evals.py",
   "if (mode, cid, k) in done:",
   "if False:",
   "eval never resumes from its checkpoint"
  ],
  [
-  "bidbox/evals.py",
+  "wazi/evals.py",
   "use_stub = stub_for_guarantees and cid not in MODEL_SENSITIVE",
   "use_stub = False",
   "code-enforced cases spend quota"
  ],
  [
-  "bidbox/evals.py",
+  "wazi/evals.py",
   "f.write(json.dumps(rec, default=str) + \"\\n\")",
   "pass",
   "finished eval runs are not checkpointed"
  ],
  [
-  "bidbox/evals.py",
+  "wazi/evals.py",
   "rows.append({**rec, \"not_run\": True, \"reason\": str(e)[:200]}); return rows",
   "rows.append({**rec, \"not_run\": True, \"reason\": str(e)[:200]})",
   "eval keeps running after the quota is gone"
  ],
  [
-  "bidbox/evals.py",
+  "wazi/evals.py",
   "(EST[\"calls_loop\"] if m == \"loop\" else EST[\"calls_pipeline\"])",
   "EST[\"calls_pipeline\"]",
   "dry-run underestimates loop-mode calls"
  ],
  [
-  "bidbox/gate.py",
+  "wazi/gate.py",
   "    if man.exists() and json.loads(man.read_text(encoding=\"utf-8\")).get(\"md_sha256\") != cur:",
   "    if False:",
   "a brief edited after filing can be approved"
  ],
  [
-  "bidbox/gate.py",
+  "wazi/gate.py",
   "if len(c) < MIN_HASH_PREFIX or not cur.startswith(c):",
   "if False:",
   "approval need not match the reviewed content"
  ],
  [
-  "bidbox/gate.py",
+  "wazi/gate.py",
   "for ext in (\"md\", \"json\", \"manifest.json\"):",
   "for ext in (\"md\", \"json\"):",
   "manifest left behind when a decision is made"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "        if mism:\n            return {\"status\": \"not_filed\", \"reason\": \"provenance does not replay",
   "        if False:\n            return {\"status\": \"not_filed\", \"reason\": \"provenance does not replay",
   "forged provenance is filed"
  ],
  [
-  "bidbox/findings.py",
+  "wazi/findings.py",
   "if not PATH_OK.match(path or \"\"):",
   "if False:",
   "invented field paths accepted as citations"
  ],
  [
-  "bidbox/findings.py",
+  "wazi/findings.py",
   "return None if row and row[\"v\"] not in (None, \"\") else \"the cited record has no value at that path\"",
   "return None",
   "citing a record that lacks the value is accepted"
  ],
  [
-  "bidbox/provenance.py",
+  "wazi/provenance.py",
   "\"evidence is exactly what the data and documents produce\", same,",
   "\"evidence is exactly what the data and documents produce\", True,",
   "verify trusts the recorded evidence"
  ],
  [
-  "bidbox/provenance.py",
+  "wazi/provenance.py",
   "add(\"brief file matches the fingerprint in the manifest\", sha_file(mdpath) == m[\"md_sha256\"],",
   "add(\"brief file matches the fingerprint in the manifest\", True,",
   "verify misses an edited brief"
  ],
  [
-  "bidbox/provenance.py",
+  "wazi/provenance.py",
   "if ev.ungrounded_numbers(f[\"statement\"], [by_id[i][\"text\"] for i in ids]):",
   "if False:",
   "verify misses invented numbers in findings"
  ],
  [
-  "bidbox/provenance.py",
+  "wazi/provenance.py",
   "if got != c.get(\"output_sha256\"):",
   "if False:",
   "replay never detects changed output"
  ],
  [
-  "bidbox/provenance.py",
+  "wazi/provenance.py",
   "if r[\"sha256\"] not in seen:",
   "if True:",
   "re-loading the same file changes the data version"
  ],
  [
-  "bidbox/policy.py",
+  "wazi/policy.py",
   "    if synthetic:\n        return None",
   "    if False:\n        return None",
   "synthetic data subject to the live-tender rule"
  ],
  [
-  "bidbox/policy.py",
+  "wazi/policy.py",
   "    if s in CLOSED:\n        return None",
   "    if False:\n        return None",
   "closed tenders treated as live"
  ],
  [
-  "bidbox/policy.py",
+  "wazi/policy.py",
   "if d > (now or today()) else None",
   "if d < (now or today()) else None",
   "deadline comparison inverted"
  ],
  [
-  "bidbox/policy.py",
+  "wazi/policy.py",
   "if s in OPEN else None",
   "if False else None",
   "active tender with no deadline allowed"
  ],
  [
-  "bidbox/policy.py",
+  "wazi/policy.py",
   "d = datetime.fromisoformat(t.replace(\"Z\", \"+00:00\")) if t else datetime.now(timezone.utc)",
   "d = datetime.now(timezone.utc)",
   "pinned test clock ignored"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "            if not policy.allowed():\n                emit(\"refused_live\"",
   "            if False:\n                emit(\"refused_live\"",
   "agent works on a live tender"
  ],
  [
-  "bidbox/agent/graph.py",
+  "wazi/agent/graph.py",
   "(\"not_found\", \"tool_error\", \"refused_live\")",
   "(\"not_found\", \"tool_error\")",
   "agent carries on after refusing a live tender"
  ],
  [
-  "bidbox/tools.py",
+  "wazi/tools.py",
   "    if live and not policy.allowed():",
   "    if False:",
   "server files briefs on live tenders"
  ],
  [
-  "bidbox/api.py",
+  "wazi/api.py",
   "\"live\": bool(policy.live_reason(r[\"status\"], r[\"deadline\"], r[\"synthetic\"]))",
   "\"live\": False",
   "UI never flags live tenders"
  ],
  [
-  "bidbox/store.py",
+  "wazi/store.py",
   "f\"{c}=COALESCE(excluded.{c},tenders.{c})\"",
   "f\"{c}=excluded.{c}\"",
   "later releases erase earlier fields"
  ],
  [
-  "bidbox/store.py",
+  "wazi/store.py",
   "\"DELETE FROM awards WHERE ocid=? AND award_id IS ?\", (ocid, _s(a.get(\"id\")))",
   "\"DELETE FROM awards WHERE ocid=?\", (ocid,)",
   "an award release wipes the other awards"
  ],
  [
-  "bidbox/store.py",
+  "wazi/store.py",
   "int(\"synthetic\" in json.dumps(meta.get(\"publisher\") or {}).lower())",
   "0",
   "synthetic data not recognised"
  ],
  [
-  "bidbox/review.py",
+  "wazi/review.py",
   "if con.get(\"use_feedback\") is not True:",
   "if False:",
   "reviews recorded without consent"
  ],
  [
-  "bidbox/review.py",
+  "wazi/review.py",
   "if who.get(\"is_human_attestation\") is not True:",
   "if False:",
   "no human attestation required"
  ],
  [
-  "bidbox/review.py",
+  "wazi/review.py",
   "if len(sha) != 64 or sha != cur:",
   "if False:",
   "review not bound to the brief the person saw"
  ],
  [
-  "bidbox/review.py",
+  "wazi/review.py",
   "if len(role) < 3 or role.casefold() in NOT_HUMAN:",
   "if False:",
   "placeholder reviewer roles accepted"
  ],
  [
-  "bidbox/review.py",
+  "wazi/review.py",
   "if any(not isinstance(rat.get(k), int) or isinstance(rat.get(k), bool) or not 1 <= rat[k] <= 5 for k in RATINGS):",
   "if False:",
   "ratings not range-checked"
  ],
  [
-  "bidbox/review.py",
+  "wazi/review.py",
   "statistics.median([m - w for m, w in pairs])",
   "max([m - w for m, w in pairs])",
   "median saving miscomputed"
  ],
  [
-  "bidbox/review.py",
+  "wazi/review.py",
   "statistics.median(man)",
   "min(man)",
   "median usual time miscomputed"
  ],
  [
-  "bidbox/review.py",
+  "wazi/review.py",
   "if r[\"consent\"][\"name_person\"] and r[\"reviewer\"][\"name\"] else \"\"",
   "if r[\"reviewer\"][\"name\"] else \"\"",
   "people named without consent"
  ],
  [
-  "bidbox/review.py",
+  "wazi/review.py",
   "if r[\"one_quote\"] and r[\"consent\"][\"quote\"]",
   "if r[\"one_quote\"]",
   "quotes used without consent"
  ],
  [
-  "bidbox/review.py",
+  "wazi/review.py",
   "    if not rs:\n        raise ValueError(\"no recorded reviews",
   "    if False:\n        raise ValueError(\"no recorded reviews",
   "FIT.md written with no review"
  ],
  [
-  "bidbox/review.py",
+  "wazi/review.py",
   "if len(pairs) < 5:",
   "if False:",
   "small samples not labelled as anecdotes"
  ],
  [
-  "bidbox/review.py",
+  "wazi/review.py",
   "return sorted(out, key=lambda r: (r.get(\"recorded_at\", \"\"), r.get(\"id\", \"\")))",
   "return out",
   "report order depends on file names"
  ],
  [
-  "bidbox/review.py",
+  "wazi/review.py",
   "if d > date.today():",
   "if False:",
   "reviews dated in the future accepted"

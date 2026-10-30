@@ -880,7 +880,7 @@ def _file_brief(conn, ocid, summary, findings, as_of, audience, provenance) -> d
     ds, cv, run_id = prov.dataset(conn), prov.code_version(), audit_log.current_run_id()
     llm = _obj(_obj((provenance or {}).get("run")).get("llm"))
     where = "REMOTE endpoint: prompts left this machine" if _obj(llm.get("settings")).get("remote") else "local"
-    footer = ((f"LIVE TENDER OVERRIDE (BIDBOX_ALLOW_LIVE=1, development only) | " if live else "") + f"Run {run_id} | data {ds['fingerprint']} | code {cv} | "
+    footer = ((f"LIVE TENDER OVERRIDE (WAZI_ALLOW_LIVE=1, development only) | " if live else "") + f"Run {run_id} | data {ds['fingerprint']} | code {cv} | "
               + (f"model {llm.get('model') or llm.get('name')} ({where}) | " if llm else "")
               + ("provenance recorded and replay-checked" if provenance else "NO provenance supplied: this brief cannot be independently reproduced"))
 

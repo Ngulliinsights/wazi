@@ -7,10 +7,10 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from bidbox import config
-from bidbox.api import app
-from bidbox.evals import build_fixture_releases
-from bidbox.store import connect, load_ocds
+from wazi import config
+from wazi.api import app
+from wazi.evals import build_fixture_releases
+from wazi.store import connect, load_ocds
 
 SAMPLE = Path(__file__).resolve().parent.parent / "data" / "sample_ocds.json"
 

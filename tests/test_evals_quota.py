@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from bidbox import evals
-from bidbox.agent.llm import QuotaExhausted, StubLLM
+from wazi import evals
+from wazi.agent.llm import QuotaExhausted, StubLLM
 
 ROOT = Path(__file__).resolve().parent.parent
 IDS = [c[0] for c in evals.CASES]
@@ -93,7 +93,7 @@ def test_report_marks_stub_run_cases_and_cached_responses_honestly():
 
 
 def test_cli_dry_run_prints_the_plan_and_calls_no_model():
-    out = subprocess.run([sys.executable, "-m", "bidbox.evals", "--dry-run", "--tier", "smoke", "--modes", "loop", "--runs", "3", "--rpm", "10", "--llm", "ollama"],
+    out = subprocess.run([sys.executable, "-m", "wazi.evals", "--dry-run", "--tier", "smoke", "--modes", "loop", "--runs", "3", "--rpm", "10", "--llm", "ollama"],
                          capture_output=True, text=True, cwd=ROOT)
     assert out.returncode == 0 and '"max_model_calls": 27' in out.stdout and "No model was called" in out.stdout
 
@@ -126,6 +126,6 @@ def test_evals_md_reports_an_incomplete_run_honestly(tmp_path):
 
 
 def test_cli_refuses_to_write_evals_md_from_the_stub(tmp_path):
-    out = subprocess.run([sys.executable, "-m", "bidbox.evals", "--llm", "stub", "--modes", "loop", "--runs", "1", "--tier", "smoke", "--write-evals", str(tmp_path / "E.md")],
+    out = subprocess.run([sys.executable, "-m", "wazi.evals", "--llm", "stub", "--modes", "loop", "--runs", "1", "--tier", "smoke", "--write-evals", str(tmp_path / "E.md")],
                          capture_output=True, text=True, cwd=ROOT)
     assert out.returncode == 2 and "refusing to write EVALS.md" in out.stderr and not (tmp_path / "E.md").exists()

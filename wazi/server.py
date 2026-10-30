@@ -1,9 +1,9 @@
-"""MCP server. Run: python -m bidbox.server  (stdio)"""
+"""MCP server. Run: python -m wazi.server  (stdio)"""
 from mcp.server.fastmcp import FastMCP
 
 from . import tools
 
-mcp = FastMCP("bidbox", log_level="WARNING")
+mcp = FastMCP("wazi", log_level="WARNING")
 mcp.tool()(tools.get_tender_notice)
 mcp.tool()(tools.buyer_award_history)
 mcp.tool()(tools.price_benchmark)

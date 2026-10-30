@@ -7,13 +7,13 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from bidbox import api, audit_log, config, provenance
-from bidbox.agent import run_agent
-from bidbox.agent.graph import mcp_session
-from bidbox.agent.inproc import TOOLS
-from bidbox.agent.llm import StubLLM
-from bidbox.evals import build_fixture_releases
-from bidbox.store import connect, load_ocds
+from wazi import api, audit_log, config, provenance
+from wazi.agent import run_agent
+from wazi.agent.graph import mcp_session
+from wazi.agent.inproc import TOOLS
+from wazi.agent.llm import StubLLM
+from wazi.evals import build_fixture_releases
+from wazi.store import connect, load_ocds
 
 pytestmark = pytest.mark.mcp
 SAMPLE = Path(__file__).resolve().parent.parent / "data" / "sample_ocds.json"
@@ -26,7 +26,7 @@ def data(tmp_path_factory):
 
 
 def test_the_fast_in_process_session_exposes_exactly_what_the_real_server_exposes():
-    from bidbox.server import mcp
+    from wazi.server import mcp
     assert set(TOOLS) == {t.name for t in asyncio.run(mcp.list_tools())}
 
 
@@ -68,7 +68,7 @@ def test_full_stack_api_run_through_real_servers_then_verify_and_approve():
 
 def test_a_quota_stop_surfaces_as_itself_through_the_real_servers_task_groups():
     """Real MCP runs inside anyio task groups, which wrap errors in ExceptionGroups: a quota stop must still arrive as QuotaExhausted."""
-    from bidbox.agent.llm import QuotaExhausted
+    from wazi.agent.llm import QuotaExhausted
     class Q(StubLLM):
         def complete_json(self, t, p):
             if t == "synthesize": raise QuotaExhausted("daily quota used up")

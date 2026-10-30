@@ -2,7 +2,7 @@
 import json
 import sqlite3
 
-from bidbox import store, tools
+from wazi import store, tools
 
 
 def _db(monkeypatch, awards, buyer="B", category="goods"):

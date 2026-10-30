@@ -22,7 +22,7 @@ def audit(conn) -> dict:
 
 
 def main():
-    p = argparse.ArgumentParser(prog="bidbox")
+    p = argparse.ArgumentParser(prog="wazi")
     s = p.add_subparsers(dest="cmd", required=True)
     l = s.add_parser("load"); l.add_argument("path", nargs="?", default=str(config.SAMPLE_DATA))
     l.add_argument("--synthetic", action="store_true", help="mark this data as synthetic (exempt from the live-tender rule)"); l.add_argument("--real", action="store_true", help="force: treat as real data even if the publisher says synthetic")

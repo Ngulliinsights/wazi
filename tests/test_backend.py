@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from bidbox import config, gate, tools
-from bidbox.cli import audit
-from bidbox.findings import verify_findings
-from bidbox.store import connect, load_ocds
+from wazi import config, gate, tools
+from wazi.cli import audit
+from wazi.findings import verify_findings
+from wazi.store import connect, load_ocds
 
 SAMPLE = Path(__file__).resolve().parent.parent / "data" / "sample_ocds.json"
 
@@ -99,7 +99,7 @@ def test_file_brief_with_no_sourced_findings_files_nothing():
 
 
 def test_agent_has_no_award_or_approve_tool():
-    from bidbox.server import mcp
+    from wazi.server import mcp
     names = {t.name for t in asyncio.run(mcp.list_tools())}
     assert names == {"get_tender_notice", "buyer_award_history", "price_benchmark", "peer_baseline", "window_baseline", "counterparty_quality", "amendment_check", "aged_items_check", "budget_exposure", "ppada_date_order_check", "single_bidder_check", "termination_check", "publication_quality_check", "process_timeline_check", "file_brief"}
 
@@ -117,7 +117,7 @@ def test_price_benchmark_matches_hand_computed_values(monkeypatch):
     Full median 130, MAD 20*1.4826 -> 1e9 has z ~ 3e7 -> excluded. Kept median = (120+130)/2 = 125.
     A value of 125 therefore has robust z of 0 and ratio 1.0."""
     import sqlite3
-    from bidbox import store
+    from wazi import store
     def fresh_conn():
         c = sqlite3.connect(":memory:"); c.row_factory = sqlite3.Row; c.executescript(store.SCHEMA)
         for i, amt in enumerate([100, 110, 120, 130, 140, 150, 1_000_000_000]):
@@ -134,7 +134,7 @@ def test_price_benchmark_matches_hand_computed_values(monkeypatch):
 
 def _fixture_db(monkeypatch, rows, buyer="B1", category="goods"):
     import sqlite3
-    from bidbox import store
+    from wazi import store
     def fresh_conn():
         c = sqlite3.connect(":memory:"); c.row_factory = sqlite3.Row; c.executescript(store.SCHEMA)
         for i, (sup, amt) in enumerate(rows):

@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from bidbox.store import connect, load_ocds
+from wazi.store import connect, load_ocds
 
 TENDER = {"ocid": "ocds-st-1", "date": "2025-03-01", "tag": ["tender"], "buyer": {"id": "B1", "name": "Stage Buyer"},
           "tender": {"title": "Supply of pens", "status": "active", "mainProcurementCategory": "goods", "procurementMethod": "open",

@@ -82,7 +82,7 @@ def extract_json(text: str) -> dict:
 
 class _Quota:
     """Process-wide request pacing and budget, shared by every client instance (each eval run builds a new client).
-    Limits come from env (BIDBOX_RPM, BIDBOX_MAX_CALLS, BIDBOX_MAX_TOKENS) or configure(). The clock and sleep are injectable for tests."""
+    Limits come from env (WAZI_RPM, WAZI_MAX_CALLS, WAZI_MAX_TOKENS) or configure(). The clock and sleep are injectable for tests."""
 
     def __init__(self):
         self._lock = threading.Lock()
@@ -103,15 +103,15 @@ class _Quota:
         return v if v is not None else _env_num(env)
 
     def before_call(self, sleep):
-        mc = self._lim("max_calls", "BIDBOX_MAX_CALLS")
-        mt = self._lim("max_tokens", "BIDBOX_MAX_TOKENS")
-        rpm = self._lim("rpm", "BIDBOX_RPM")
+        mc = self._lim("max_calls", "WAZI_MAX_CALLS")
+        mt = self._lim("max_tokens", "WAZI_MAX_TOKENS")
+        rpm = self._lim("rpm", "WAZI_RPM")
         wait = 0.0
         with self._lock:                       # budget and pacing are shared by threads; the sleep itself happens outside the lock
             if mc and self.calls >= mc:
-                raise QuotaExhausted(f"call budget of {int(mc)} requests reached (BIDBOX_MAX_CALLS)")
+                raise QuotaExhausted(f"call budget of {int(mc)} requests reached (WAZI_MAX_CALLS)")
             if mt and self.tokens >= mt:
-                raise QuotaExhausted(f"token budget of {int(mt)} reached (BIDBOX_MAX_TOKENS)")
+                raise QuotaExhausted(f"token budget of {int(mt)} reached (WAZI_MAX_TOKENS)")
             if rpm:
                 now = self.clock()
                 slot = max(now, self.next_ok)
@@ -135,14 +135,14 @@ QUOTA = _Quota()
 
 class _Cache:
     """Response cache keyed by (model, settings, exact prompt). A repeated eval costs ZERO quota and is exactly reproducible.
-    BIDBOX_LLM_CACHE=<file>; BIDBOX_LLM_CACHE_MODE=readwrite (default) | readonly (a miss is an error: guaranteed no network)."""
+    WAZI_LLM_CACHE=<file>; WAZI_LLM_CACHE_MODE=readwrite (default) | readonly (a miss is an error: guaranteed no network)."""
 
     def __init__(self):
         self.path, self.mem = None, {}
         self._lock = threading.RLock()
 
     def _sync(self):
-        p = os.environ.get("BIDBOX_LLM_CACHE") or None
+        p = os.environ.get("WAZI_LLM_CACHE") or None
         with self._lock:
             if p != self.path:
                 self.path, self.mem = p, {}
@@ -158,7 +158,7 @@ class _Cache:
 
     @property
     def readonly(self):
-        return bool(self._sync()) and os.environ.get("BIDBOX_LLM_CACHE_MODE", "readwrite") == "readonly"
+        return bool(self._sync()) and os.environ.get("WAZI_LLM_CACHE_MODE", "readwrite") == "readonly"
 
     def get(self, key):
         return self.mem.get(key) if self._sync() else None
@@ -206,22 +206,22 @@ def _transient(e: Exception) -> bool:
 class OllamaLLM:
     """Open-weights model, local or hosted. Two wire formats:
     - api="native" (default): Ollama /api/chat. Strict JSON mode, thinking OFF, explicit context size, keep_alive, exact token counts.
-    - api="openai": any OpenAI-compatible server (vLLM, llama.cpp, LM Studio, or a hosted free tier). Set BIDBOX_LLM_URL and BIDBOX_API_KEY.
+    - api="openai": any OpenAI-compatible server (vLLM, llama.cpp, LM Studio, or a hosted free tier). Set WAZI_LLM_URL and WAZI_API_KEY.
     Free-tier behaviour: 429/5xx and dropped connections retried with Retry-After or exponential backoff; a daily-quota 429 raises
-    QuotaExhausted (no retry); providers that reject JSON mode are retried without it; requests are paced (BIDBOX_RPM) and budgeted;
+    QuotaExhausted (no retry); providers that reject JSON mode are retried without it; requests are paced (WAZI_RPM) and budgeted;
     responses are cached."""
     name = "ollama"
 
     def __init__(self, model=None, base_url=None, timeout=900, api=None, num_ctx=None, num_predict=None, api_key=None, max_retries=None):
-        self.model = model or os.environ.get("BIDBOX_MODEL", "qwen3:4b")   # placeholder default: choose by measurement (python -m bidbox.bench)
-        self.base = (base_url or os.environ.get("BIDBOX_LLM_URL", "http://localhost:11434")).rstrip("/")
-        self.api = api or os.environ.get("BIDBOX_LLM_API", "native")
+        self.model = model or os.environ.get("WAZI_MODEL", "qwen3:4b")   # placeholder default: choose by measurement (python -m wazi.bench)
+        self.base = (base_url or os.environ.get("WAZI_LLM_URL", "http://localhost:11434")).rstrip("/")
+        self.api = api or os.environ.get("WAZI_LLM_API", "native")
         if self.api not in APIS:
             raise ValueError(f"api must be one of {APIS}, got {self.api!r}")
-        self.api_key = api_key or os.environ.get("BIDBOX_API_KEY")
-        self.num_ctx = int(num_ctx or _env_num("BIDBOX_NUM_CTX", 4096, int))
-        self.num_predict = int(num_predict or _env_num("BIDBOX_NUM_PREDICT", 1400, int))
-        self.max_retries = _env_num("BIDBOX_MAX_RETRIES", 4, int) if max_retries is None else max_retries
+        self.api_key = api_key or os.environ.get("WAZI_API_KEY")
+        self.num_ctx = int(num_ctx or _env_num("WAZI_NUM_CTX", 4096, int))
+        self.num_predict = int(num_predict or _env_num("WAZI_NUM_PREDICT", 1400, int))
+        self.max_retries = _env_num("WAZI_MAX_RETRIES", 4, int) if max_retries is None else max_retries
         self.timeout, self._think_param_ok, self._json_mode_ok = timeout, True, True
         self._sleep = time.sleep
         self.calls = self.tokens_in = self.tokens_out = 0
@@ -240,7 +240,7 @@ class OllamaLLM:
             wait = max(0.0, float(retry_after))
         except (TypeError, ValueError):
             wait = min(60.0, 2.0 ** attempt)                       # exponential backoff when the provider gives no hint
-        return min(wait, _env_num("BIDBOX_MAX_WAIT", 120.0))
+        return min(wait, _env_num("WAZI_MAX_WAIT", 120.0))
 
     def _post(self, path: str, body: dict) -> dict:
         headers = {"Content-Type": "application/json"}
@@ -331,13 +331,13 @@ class OllamaLLM:
             self._record(task, user, hit["response"], t_in, t_out, True)
             return extract_json(hit["response"])
         if CACHE.readonly:
-            raise LLMError("response not in the cache and BIDBOX_LLM_CACHE_MODE=readonly forbids a network call")
+            raise LLMError("response not in the cache and WAZI_LLM_CACHE_MODE=readonly forbids a network call")
         ti0, to0 = self.tokens_in, self.tokens_out
         try:
             text, done = self._chat_openai(msgs) if self.api == "openai" else self._chat_native(msgs)
         except _HTTPFail as e:
             if e.code in (401, 403):
-                raise LLMError(f"authentication failed (HTTP {e.code}): set BIDBOX_API_KEY for this endpoint") from e
+                raise LLMError(f"authentication failed (HTTP {e.code}): set WAZI_API_KEY for this endpoint") from e
             raise LLMError(f"model call failed: HTTP {e.code} {e.detail[:150]}") from e
         except LLMError:
             raise
@@ -347,7 +347,7 @@ class OllamaLLM:
         QUOTA.add_tokens(t_in + t_out)
         self._record(task, user, text or "", t_in, t_out, False)
         if done == "length":
-            raise LLMError(f"output cut off at the {self.num_predict}-token limit; raise BIDBOX_NUM_PREDICT or use a smaller prompt")
+            raise LLMError(f"output cut off at the {self.num_predict}-token limit; raise WAZI_NUM_PREDICT or use a smaller prompt")
         if not (text or "").strip():
             raise LLMError("model returned empty content (a reasoning model with thinking left on can do this)")
         obj = extract_json(text)
